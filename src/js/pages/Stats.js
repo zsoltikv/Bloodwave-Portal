@@ -1,4 +1,4 @@
-import { logout } from '../auth.js';
+import { getUser, logout } from '../auth.js';
 
 export default function Stats(container) {
   container.innerHTML = `
@@ -293,6 +293,27 @@ export default function Stats(container) {
       }
       .st-mobile-avatar svg { width: 14px; height: 14px; color: rgba(212,175,55,0.6); }
 
+      .st-mobile-logout {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 8px;
+        font-size: 9px;
+        font-weight: 400;
+        letter-spacing: 4px;
+        color: rgba(192,57,43,0.55);
+        text-transform: uppercase;
+        background: none;
+        border: none;
+        width: 100%;
+        cursor: pointer;
+        transition: color 0.3s, padding-left 0.3s;
+        -webkit-tap-highlight-color: transparent;
+        outline: none;
+      }
+      .st-mobile-logout:hover { color: rgba(220,80,60,0.9); padding-left: 14px; }
+      .st-mobile-logout svg { width: 14px; height: 14px; flex-shrink: 0; }
+
       @media (max-width: 768px) {
         .st-links     { display: none; }
         .st-hamburger { display: flex; }
@@ -558,8 +579,20 @@ export default function Stats(container) {
             <a href="/main" data-link class="st-mobile-link">Matches</a>
             <a href="/stats" data-link class="st-mobile-link">Stats</a>
             <div class="st-mobile-divider"></div>
+            <div class="st-mobile-profile" style="pointer-events:none; cursor:default;">
+              <span class="st-mobile-avatar">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                </svg>
+              </span>
+              <span id="st-mobile-username">—</span>
+            </div>
+            <div class="st-mobile-divider"></div>
             <a href="/user-panel" data-link class="st-mobile-link">Profile</a>
-            <button class="st-mobile-logout" id="st-mobile-logout" style="background:none; border:none; padding:14px 8px; width:100%; text-align:left; cursor:pointer; color:rgba(255,255,255,0.35); font-size:9px; font-weight:400; letter-spacing:4px; text-transform:uppercase; transition:color 0.3s, padding-left 0.3s;">
+            <button class="st-mobile-logout" id="st-mobile-logout">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+              </svg>
               Logout
             </button>
           </div>
@@ -710,6 +743,11 @@ export default function Stats(container) {
   initStCanvas();
   spawnStParticles();
 
+  const user = getUser();
+  const displayName = user?.username ?? user?.email ?? 'Member';
+  const mobileUsername = container.querySelector('#st-mobile-username');
+  if (mobileUsername) mobileUsername.textContent = displayName;
+
   // ── Hamburger toggle ──────────────────────────────────────────────────────
   const hamburger  = container.querySelector('#st-hamburger');
   const mobileMenu = container.querySelector('#st-mobile-menu');
@@ -743,7 +781,7 @@ export default function Stats(container) {
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
       logoutBtn.disabled = true;
-      logoutBtn.textContent = '✦ Logging out… ✦';
+      logoutBtn.innerHTML = '✦ Logging out… ✦';
       await logout();
     });
   }

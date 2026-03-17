@@ -159,6 +159,13 @@ export default function UserPanel(container) {
 
       .up-nav-spacer { margin-left: auto; }
 
+      .up-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
       .up-nav-link {
         font-size: 9px;
         font-weight: 400;
@@ -171,6 +178,121 @@ export default function UserPanel(container) {
         white-space: nowrap;
       }
       .up-nav-link:hover { color: rgba(255,255,255,0.82); }
+
+      .up-hamburger {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 36px;
+        height: 36px;
+        gap: 5px;
+        background: none;
+        border: 1px solid rgba(139,0,0,0.25);
+        cursor: pointer;
+        padding: 0;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: border-color 0.3s;
+      }
+      .up-hamburger:hover { border-color: rgba(192,57,43,0.5); }
+
+      .up-bar {
+        display: block;
+        width: 18px;
+        height: 1px;
+        background: rgba(212,175,55,0.6);
+        transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), opacity 0.25s;
+        transform-origin: center;
+      }
+
+      .up-mobile-menu {
+        display: none;
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.4s cubic-bezier(0.22,1,0.36,1);
+        background: linear-gradient(180deg, rgba(10,3,3,0.98) 0%, rgba(8,2,2,0.99) 100%);
+        border-top: 1px solid rgba(139,0,0,0.12);
+      }
+
+      .up-mobile-menu-inner {
+        padding: 10px clamp(16px, 4vw, 48px) 16px;
+      }
+
+      .up-mobile-link {
+        display: flex;
+        align-items: center;
+        padding: 14px 8px;
+        font-size: 9px;
+        font-weight: 400;
+        letter-spacing: 4px;
+        color: rgba(255,255,255,0.35);
+        text-transform: uppercase;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(139,0,0,0.1);
+        transition: color 0.3s, padding-left 0.3s;
+      }
+      .up-mobile-link:last-of-type { border-bottom: none; }
+      .up-mobile-link:hover { color: rgba(255,255,255,0.8); padding-left: 14px; }
+
+      .up-mobile-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(212,175,55,0.18), transparent);
+        margin: 6px 0;
+      }
+
+      .up-mobile-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 8px;
+        font-size: 9px;
+        font-weight: 400;
+        letter-spacing: 4px;
+        color: rgba(212,175,55,0.5);
+        text-transform: uppercase;
+        background: none;
+        border: none;
+        width: 100%;
+      }
+
+      .up-mobile-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, rgba(139,0,0,0.6), rgba(40,5,5,0.9));
+        border: 1px solid rgba(139,0,0,0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .up-mobile-avatar svg { width: 14px; height: 14px; color: rgba(212,175,55,0.6); }
+
+      .up-mobile-logout {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 8px;
+        font-size: 9px;
+        font-weight: 400;
+        letter-spacing: 4px;
+        color: rgba(192,57,43,0.55);
+        text-transform: uppercase;
+        background: none;
+        border: none;
+        width: 100%;
+        cursor: pointer;
+        transition: color 0.3s, padding-left 0.3s;
+        -webkit-tap-highlight-color: transparent;
+        outline: none;
+      }
+      .up-mobile-logout:hover { color: rgba(220,80,60,0.9); padding-left: 14px; }
+      .up-mobile-logout svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+      .up-hamburger.open .up-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+      .up-hamburger.open .up-bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
+      .up-hamburger.open .up-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
       /* === CONTENT AREA === */
       .up-content {
@@ -832,6 +954,13 @@ export default function UserPanel(container) {
           animation-duration: 6.2s, 4.2s;
         }
 
+        .up-nav-link {
+          display: none;
+        }
+
+        .up-hamburger { display: flex; }
+        .up-mobile-menu { display: block; }
+
         .up-logo::after {
           right: -10px;
           font-size: 7px;
@@ -907,8 +1036,38 @@ export default function UserPanel(container) {
       <nav class="up-nav">
         <div class="up-nav-inner">
           <a href="/" data-link class="up-logo">Bloodwave</a>
-          <div class="up-nav-spacer"></div>
-          <a href="/main" data-link class="up-nav-link" id="upBackToDashboard">Back to Dashboard</a>
+          <div class="up-right">
+            <a href="/main" data-link class="up-nav-link" id="upBackToDashboard">Back to Dashboard</a>
+            <button class="up-hamburger" id="up-hamburger" aria-label="Toggle menu" aria-expanded="false">
+              <span class="up-bar"></span>
+              <span class="up-bar"></span>
+              <span class="up-bar"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="up-mobile-menu" id="up-mobile-menu">
+          <div class="up-mobile-menu-inner">
+            <a href="/main" data-link class="up-mobile-link">Matches</a>
+            <a href="/stats" data-link class="up-mobile-link">Stats</a>
+            <div class="up-mobile-divider"></div>
+            <div class="up-mobile-profile" style="pointer-events:none; cursor:default;">
+              <span class="up-mobile-avatar">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                </svg>
+              </span>
+              <span id="up-mobile-username">—</span>
+            </div>
+            <div class="up-mobile-divider"></div>
+            <a href="/user-panel" data-link class="up-mobile-link">Profile</a>
+            <button class="up-mobile-logout" id="up-mobile-logout">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+              </svg>
+              Logout
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -1095,6 +1254,31 @@ export default function UserPanel(container) {
     const year = date.getFullYear();
     return `${month} ${day}, ${year}`;
   }
+
+  const mobileUsername = document.getElementById('up-mobile-username');
+  if (mobileUsername) {
+    mobileUsername.textContent = user?.username || user?.email || 'Member';
+  }
+
+  const hamburger = document.getElementById('up-hamburger');
+  const mobileMenu = document.getElementById('up-mobile-menu');
+  let mobileMenuOpen = false;
+
+  hamburger?.addEventListener('click', () => {
+    mobileMenuOpen = !mobileMenuOpen;
+    hamburger.classList.toggle('open', mobileMenuOpen);
+    hamburger.setAttribute('aria-expanded', String(mobileMenuOpen));
+    mobileMenu.style.maxHeight = mobileMenuOpen ? mobileMenu.scrollHeight + 'px' : '0';
+  });
+
+  mobileMenu?.querySelectorAll('.up-mobile-link').forEach((link) => {
+    link.addEventListener('click', () => {
+      mobileMenuOpen = false;
+      hamburger?.classList.remove('open');
+      hamburger?.setAttribute('aria-expanded', 'false');
+      mobileMenu.style.maxHeight = '0';
+    });
+  });
 
   // ========== CANVAS ANIMATION ==========
   function initUpCanvas() {
@@ -1350,16 +1534,29 @@ export default function UserPanel(container) {
   });
 
   // ========== LOGOUT ==========
-  document.getElementById('upLogout')?.addEventListener('click', async () => {
-    const btn = document.getElementById('upLogout');
-    btn.disabled = true;
-    btn.textContent = '✦ Goodbye… ✦';
-    
+  const doLogout = async (button) => {
+    if (button) {
+      button.disabled = true;
+      if (button.id === 'upLogout') {
+        button.textContent = '✦ Goodbye… ✦';
+      } else {
+        button.innerHTML = '✦ Logging out… ✦';
+      }
+    }
+
     try {
       await logout();
     } catch (err) {
       console.error('Logout error:', err);
     }
+  };
+
+  document.getElementById('upLogout')?.addEventListener('click', async () => {
+    await doLogout(document.getElementById('upLogout'));
+  });
+
+  document.getElementById('up-mobile-logout')?.addEventListener('click', async () => {
+    await doLogout(document.getElementById('up-mobile-logout'));
   });
 
   document.getElementById('upBackToDashboard')?.addEventListener('click', (e) => {
