@@ -1,3 +1,4 @@
+import '../../css/pages/Register.css';
 import { register } from '../auth.js';
 
 export default function Register(container) {
@@ -463,4 +464,5 @@ function spawnRegisterParticles() {
     root.appendChild(p);
   }
 }
+
 

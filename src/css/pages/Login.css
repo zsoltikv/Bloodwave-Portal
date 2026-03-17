@@ -1,0 +1,71 @@
+@import './auth-common.css';
+
+/* ============================================
+   LOGIN-SPECIFIC (bw-extras / remember / forgot)
+   ============================================ */
+
+.bw-extras {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: clamp(24px, 5vw, 38px);
+  flex-wrap: wrap;
+  gap: 10px;
+  animation: bw-fade-in 0.8s ease both 0.8s;
+}
+
+.bw-remember {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+
+.bw-checkbox {
+  width: 15px;
+  height: 15px;
+  border: 1px solid rgba(139,0,0,0.45);
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.3s, background 0.3s;
+  flex-shrink: 0;
+}
+.bw-checkbox:checked {
+  background: rgba(139,0,0,0.25);
+  border-color: var(--crimson-bright);
+}
+.bw-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background: var(--gold-light);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+.bw-remember-label {
+  font-size: clamp(8px, 2vw, 10px);
+  letter-spacing: 2.5px;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  font-weight: 300;
+  user-select: none;
+}
+
+.bw-forgot {
+  font-size: clamp(8px, 2vw, 10px);
+  letter-spacing: 2.5px;
+  color: rgba(212,175,55,0.5);
+  text-transform: uppercase;
+  text-decoration: none;
+  font-weight: 300;
+  transition: color 0.3s, letter-spacing 0.3s;
+  white-space: nowrap;
+}
+.bw-forgot:hover { color: rgba(212,175,55,0.85); letter-spacing: 3px; }
+
+@media (max-width: 400px) {
+  .bw-extras { flex-direction: column; align-items: flex-start; }
+}

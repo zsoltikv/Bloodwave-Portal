@@ -1,3 +1,4 @@
+import '../../css/pages/Login.css';
 import { login } from '../auth.js';
 
 export default function Login(container) {

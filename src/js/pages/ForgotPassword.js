@@ -1,3 +1,4 @@
+import '../../css/pages/ForgotPassword.css';
 export default function ForgotPassword(container) {
   container.innerHTML = `
     <div class="bw-root">

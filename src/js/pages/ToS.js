@@ -1,3 +1,4 @@
+import '../../css/pages/ToS.css';
 export default function ToS(container) {
   container.innerHTML = `
     <div class="bw-root">
@@ -241,3 +242,4 @@ function spawnToSParticles() {
     root.appendChild(p);
   }
 }
+

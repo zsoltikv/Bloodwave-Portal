@@ -1,0 +1,51 @@
+@import './auth-common.css';
+
+/* ============================================
+   REGISTER-SPECIFIC (password strength)
+   ============================================ */
+
+#pwStrengthLine {
+  height: 2px;
+  background-image: var(--pw-gradient,
+    linear-gradient(90deg, var(--crimson), var(--gold-light), var(--crimson)));
+  animation: bw-pw-shimmer 2.2s linear infinite paused;
+}
+#pwStrengthLine.bw-pw-active {
+  animation-play-state: running;
+}
+@keyframes bw-pw-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+#pwStrengthLine.bw-pw-pulse {
+  transform: scaleX(1) scaleY(2.5);
+}
+
+/* ============================================
+   TOS & COOKIE POLICY CHECKBOX
+   ============================================ */
+
+.bw-checkbox-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.bw-checkbox-label {
+  font-size: clamp(9px, 2.2vw, 11px);
+  letter-spacing: 1.2px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.bw-checkbox-label a {
+  transition: color 0.3s ease;
+}
+
+.bw-checkbox-label a:hover {
+  color: var(--bw-gold-light, #D4AF37);
+  text-decoration: underline;
+}
