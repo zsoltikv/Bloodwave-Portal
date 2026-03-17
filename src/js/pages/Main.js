@@ -532,6 +532,12 @@ export default function Main(container) {
                   </svg>
                   Settings
                 </a>
+                <a href="/user-panel" data-link class="mn-dd-item" role="menuitem">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15a7.488 7.488 0 0 0-5.982 3.725m11.964 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275m11.963 0A24.973 24.973 0 0 1 12 16.5a24.973 24.973 0 0 1-5.982 2.275" />
+                  </svg>
+                  Profile
+                </a>
                 <div class="mn-dd-divider"></div>
                 <button class="mn-dd-item logout" id="mn-dd-logout" role="menuitem">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -566,6 +572,8 @@ export default function Main(container) {
               </span>
               <span id="mn-mobile-username">—</span>
             </div>
+            <div class="mn-mobile-divider"></div>
+            <a href="/user-panel" data-link class="mn-mobile-link">Profile</a>
             <button class="mn-mobile-logout" id="mn-mobile-logout">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />

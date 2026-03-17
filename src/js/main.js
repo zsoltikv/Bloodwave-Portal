@@ -5,6 +5,7 @@ import ForgotPassword from './pages/ForgotPassword.js';
 import Main from './pages/Main.js';
 import Stats from './pages/Stats.js';
 import ToS from './pages/ToS.js';
+import UserPanel from './pages/UserPanel.js';
 
 // Define routes
 const routes = [
@@ -35,6 +36,10 @@ const routes = [
   {
     path: '/stats',
     component: Stats
+  },
+  {
+    path: '/user-panel',
+    component: UserPanel
   }
 ];
 

@@ -1,6 +1,6 @@
 import { isLoggedIn } from './auth.js';
 
-const PROTECTED_PATHS = ['/main', '/stats'];
+const PROTECTED_PATHS = ['/main', '/stats', '/user-panel'];
 const GUEST_ONLY_PATHS = ['/login', '/register', '/forgot-password', '/'];
 
 class Router {

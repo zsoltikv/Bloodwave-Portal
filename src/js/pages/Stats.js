@@ -1,3 +1,5 @@
+import { logout } from '../auth.js';
+
 export default function Stats(container) {
   container.innerHTML = `
     <style>
@@ -492,13 +494,9 @@ export default function Stats(container) {
             <a href="/main" data-link class="st-mobile-link">Matches</a>
             <a href="/stats" data-link class="st-mobile-link">Stats</a>
             <div class="st-mobile-divider"></div>
-            <button class="st-mobile-profile" id="st-profile-btn-mobile">
-              <span class="st-mobile-avatar">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-                </svg>
-              </span>
-              Profile &amp; Settings
+            <a href="/user-panel" data-link class="st-mobile-link">Profile</a>
+            <button class="st-mobile-logout" id="st-mobile-logout" style="background:none; border:none; padding:14px 8px; width:100%; text-align:left; cursor:pointer; color:rgba(255,255,255,0.35); font-size:9px; font-weight:400; letter-spacing:4px; text-transform:uppercase; transition:color 0.3s, padding-left 0.3s;">
+              Logout
             </button>
           </div>
         </div>
@@ -671,10 +669,20 @@ export default function Stats(container) {
 
   // ── Profile navigation ────────────────────────────────────────────────────
   const goToProfile = () => {
-    console.log('Navigate to profile/settings');
+    window.router?.navigate('/user-panel');
   };
   container.querySelector('#st-profile-btn')?.addEventListener('click', goToProfile);
   container.querySelector('#st-profile-btn-mobile')?.addEventListener('click', goToProfile);
+
+  // ── Logout functionality ──────────────────────────────────────────────────
+  const logoutBtn = container.querySelector('#st-mobile-logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      logoutBtn.disabled = true;
+      logoutBtn.textContent = '✦ Logging out… ✦';
+      await logout();
+    });
+  }
 }
 
 /* ======================================================================
