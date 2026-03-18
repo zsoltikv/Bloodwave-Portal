@@ -538,4 +538,3 @@ function getMockMatches() {
     { id: 'run-005', durationSeconds: 3321, levelReached: 36, playedAt: '2026-03-13T21:56:00' },
   ];
 }
-

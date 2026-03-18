@@ -436,6 +436,13 @@
 .bw-footer-link {
   text-align: center;
   animation: bw-fade-in 0.8s ease both 1.2s;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.bw-root .bw-footer-link:hover,
+.bw-root .bw-footer-link:focus-visible {
+  border-bottom: none;
+  border-color: transparent;
 }
 .bw-footer-link p {
   font-size: clamp(8px, 2vw, 10px);
@@ -445,14 +452,14 @@
   font-weight: 300;
 }
 .bw-footer-link a {
-  color: rgba(212,175,55,0.6);
-  text-decoration: none;
-  font-weight: 400;
   margin-left: 6px;
-  transition: color 0.3s;
-  display: inline-block;
+  text-decoration: none;
 }
-.bw-footer-link a:hover { color: rgba(212,175,55,0.95); }
+.bw-footer-link a:focus-visible,
+.bw-footer-link a:active {
+  text-decoration: none;
+  border-bottom: none;
+}
 
 /* ============================================
    BW PARTICLES

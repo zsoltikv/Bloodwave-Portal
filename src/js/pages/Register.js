@@ -96,7 +96,7 @@ export default function Register(container) {
             </div>
 
             <div class="bw-footer-link">
-              <p>Already a member? <a href="/login" data-link>Sign In</a></p>
+              <p>Already a member? <a href="/login" data-link class="bw-forgot">Sign In</a></p>
             </div>
 
           </form>

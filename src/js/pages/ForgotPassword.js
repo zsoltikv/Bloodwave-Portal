@@ -67,7 +67,7 @@ export default function ForgotPassword(container) {
             </div>
 
             <div class="bw-footer-link">
-              <p>Remembered it? <a href="/login" data-link>Sign In</a></p>
+              <p>Remembered it? <a href="/login" data-link class="bw-forgot">Sign In</a></p>
             </div>
 
           </div>

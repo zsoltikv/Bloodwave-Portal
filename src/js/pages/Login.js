@@ -70,7 +70,7 @@ export default function Login(container) {
             </div>
 
             <div class="bw-footer-link">
-              <p>New member? <a href="/register" data-link>Join Now</a></p>
+              <p>New member? <a href="/register" data-link class="bw-forgot">Join Now</a></p>
             </div>
 
           </form>
