@@ -48,16 +48,16 @@ html, body { height: 100%; }
 }
 
 ::-webkit-scrollbar-track {
-  background: #000000;
+  background: #0d0904;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #7f1d1d;
+  background: linear-gradient(180deg, #8f6f12, #d4af37);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #991b1b;
+  background: linear-gradient(180deg, #b8960c, #e3c15a);
 }
 
 ::selection {

@@ -16,18 +16,18 @@
 }
 
 .bw-tos-content::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(18, 12, 5, 0.55);
   border-radius: 3px;
 }
 
 .bw-tos-content::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--crimson), var(--gold-light));
+  background: linear-gradient(180deg, #8f6f12, #d4af37);
   border-radius: 3px;
   transition: background 0.3s;
 }
 
 .bw-tos-content::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #c0392b, #e6b84d);
+  background: linear-gradient(180deg, #b8960c, #e3c15a);
 }
 
 .bw-tos-section {
