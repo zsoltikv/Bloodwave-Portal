@@ -643,6 +643,36 @@ html, body { height: 100%; }
     width: 100%;
     text-align: left;
   }
+
+  .bw-footer-inner {
+    gap: 12px;
+    text-align: center;
+  }
+
+  .bw-footer-brand {
+    align-items: center;
+  }
+
+  .bw-footer-copy {
+    max-width: 34ch;
+    margin: 0 auto;
+  }
+
+  .bw-footer-nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .bw-footer-link {
+    width: 100%;
+    text-align: center;
+    padding-bottom: 6px;
+  }
+
+  .bw-footer-meta {
+    text-align: center;
+  }
 }
 
 @keyframes bw-footer-in {
