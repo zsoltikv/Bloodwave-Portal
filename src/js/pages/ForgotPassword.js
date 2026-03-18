@@ -114,163 +114,76 @@ export default function ForgotPassword(container) {
 }
 
 /* ============================================================
-   CANVAS – star field concentrated around the card
+   CANVAS – same starry background as Main page
    ============================================================ */
 function initFpCanvas() {
   const canvas = document.getElementById('fp-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
-  let W, H, cardCX, cardCY, cardW, cardH;
+  let W, H;
   let stars = [];
-  let animId;
 
   function measure() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
-    const card = document.querySelector('.bw-card-inner');
-    if (card) {
-      const r = card.getBoundingClientRect();
-      cardCX = r.left + r.width  / 2;
-      cardCY = r.top  + r.height / 2;
-      cardW  = r.width;
-      cardH  = r.height;
-    } else {
-      cardCX = W / 2;
-      cardCY = H / 2;
-      cardW  = 420;
-      cardH  = 480;
-    }
   }
-
-  const STAR_COUNT = 220;
 
   function initStars() {
     stars = [];
-    for (let i = 0; i < STAR_COUNT; i++) {
-      stars.push(makeStar(i < STAR_COUNT * 0.45, true));
+    for (let i = 0; i < 85; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.3 + 0.3,
+        opacity: Math.random() * 0.6 + 0.2,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+      });
     }
   }
 
-  requestAnimationFrame(() => {
-    measure();
-    initStars();
+  function anim() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = 'rgb(8,6,6)';
+    ctx.fillRect(0, 0, W, H);
 
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        measure();
-        initStars();
-      }, 150);
+    stars.forEach(s => {
+      s.x += s.vx;
+      s.y += s.vy;
+      if (s.x < 0) s.x = W;
+      if (s.x > W) s.x = 0;
+      if (s.y < 0) s.y = H;
+      if (s.y > H) s.y = 0;
+
+      const glowRadius = s.r * 6;
+      const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowRadius);
+      glow.addColorStop(0, `rgba(212,175,55,${Math.min(1, s.opacity * 0.75)})`);
+      glow.addColorStop(0.35, `rgba(212,175,55,${s.opacity * 0.35})`);
+      glow.addColorStop(1, 'rgba(212,175,55,0)');
+
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, glowRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = `rgba(255,230,150,${Math.min(1, s.opacity + 0.2)})`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
     });
 
-    let streakTimer = 0;
+    requestAnimationFrame(anim);
+  }
 
-    function draw() {
-      if (!document.getElementById('fp-canvas')) { cancelAnimationFrame(animId); return; }
-      ctx.clearRect(0, 0, W, H);
+  measure();
+  initStars();
+  anim();
 
-      streakTimer++;
-      if (streakTimer > 180 + Math.random() * 180) {
-        drawFpStreak(ctx, cardCX, cardCY, cardW, cardH, W, H);
-        streakTimer = 0;
-      }
-
-      stars.forEach((s, i) => {
-        s.flicker += s.flickerSpeed;
-        s.life++;
-
-        const fade  = Math.min(s.life / 40, 1) * Math.max(1 - (s.life - s.maxLife * 0.8) / (s.maxLife * 0.2), 0);
-        const alpha = s.opacity * (0.65 + 0.35 * Math.sin(s.flicker)) * Math.max(fade, 0.01);
-        const extra = s.nearCard ? 1.25 : 1;
-
-        ctx.globalAlpha = Math.min(alpha * extra, 1);
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = s.isRed ? '#CC1A1A' : s.isGold ? '#D4AF37' : '#FFE8D8';
-        ctx.fill();
-        ctx.globalAlpha = 1;
-
-        s.x += s.vx;
-        s.y += s.vy;
-
-        if (s.life > s.maxLife || s.x < -20 || s.x > W + 20 || s.y < -20 || s.y > H + 20) {
-          stars[i] = makeStar(Math.random() < 0.45, false);
-        }
-      });
-
-      animId = requestAnimationFrame(draw);
-    }
-
-    draw();
+  window.addEventListener('resize', () => {
+    measure();
+    initStars();
   });
-
-  function makeStar(nearCard, firstTime) {
-    const isRed  = Math.random() < 0.07;
-    const isGold = !isRed && Math.random() < 0.04;
-    const r      = Math.random() * 1.4 + 0.2;
-
-    let x, y;
-    if (nearCard) {
-      const haloR = (Math.max(cardW, cardH) * 0.5) + Math.random() * Math.min(W, H) * 0.35;
-      const angle = Math.random() * Math.PI * 2;
-      x = cardCX + Math.cos(angle) * haloR;
-      y = cardCY + Math.sin(angle) * haloR;
-    } else {
-      x = Math.random() * W;
-      y = firstTime ? Math.random() * H : H + 5;
-    }
-
-    const baseAngle = Math.atan2(cardCY - y, cardCX - x);
-    const scatter   = (Math.random() - 0.5) * 0.9;
-    const speed     = Math.random() * 0.22 + 0.05;
-
-    return {
-      x, y, r,
-      vx: Math.cos(baseAngle + scatter) * speed * 0.4,
-      vy: Math.sin(baseAngle + scatter) * speed * (Math.random() < 0.6 ? 0.5 : -0.2),
-      opacity: Math.random() * 0.65 + 0.18,
-      flicker: Math.random() * Math.PI * 2,
-      flickerSpeed: Math.random() * 0.025 + 0.004,
-      isRed, isGold, nearCard,
-      life: 0,
-      maxLife: 400 + Math.random() * 600,
-    };
-  }
-}
-
-function drawFpStreak(ctx, cx, cy, cw, ch, W, H) {
-  let x, y;
-  if (Math.random() < 0.5) {
-    x = Math.random() * W;
-    y = Math.random() * cy * 0.6;
-  } else {
-    x = Math.random() > 0.5 ? -10 : W + 10;
-    y = Math.random() * H;
-  }
-
-  const targetX = cx + (Math.random() - 0.5) * cw * 1.5;
-  const targetY = cy + (Math.random() - 0.5) * ch * 1.5;
-  const len     = Math.hypot(targetX - x, targetY - y) * (0.4 + Math.random() * 0.4);
-  const angle   = Math.atan2(targetY - y, targetX - x);
-
-  const grd = ctx.createLinearGradient(x, y, x + Math.cos(angle) * len, y + Math.sin(angle) * len);
-  grd.addColorStop(0, 'transparent');
-  grd.addColorStop(0.45, 'rgba(220,60,40,0.55)');
-  grd.addColorStop(0.55, 'rgba(255,200,180,0.7)');
-  grd.addColorStop(1, 'transparent');
-
-  ctx.save();
-  ctx.lineWidth = Math.random() * 1.2 + 0.4;
-  ctx.strokeStyle = grd;
-  ctx.shadowColor = 'rgba(200,50,30,0.4)';
-  ctx.shadowBlur  = 6;
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
-  ctx.stroke();
-  ctx.restore();
 }
 
 function spawnFpParticles() {
