@@ -66,6 +66,194 @@ html, body { height: 100%; }
   min-height: 0;
 }
 
+.bw-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background:
+    radial-gradient(120% 120% at 50% 100%, rgba(139, 0, 0, 0.2), transparent 58%),
+    rgba(6, 4, 4, 0.75);
+  backdrop-filter: blur(6px);
+  animation: bw-confirm-fade 0.24s ease-out;
+}
+
+.bw-confirm-overlay--closing {
+  pointer-events: none;
+  animation: bw-confirm-fade-out 0.24s ease-in forwards;
+}
+
+.bw-confirm-overlay--closing .bw-confirm-card {
+  animation: bw-confirm-exit 0.24s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.bw-confirm-card {
+  position: relative;
+  width: min(480px, 100%);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 8px;
+  background:
+    radial-gradient(90% 120% at 50% 0%, rgba(139, 0, 0, 0.2), transparent 68%),
+    linear-gradient(150deg, rgba(20, 9, 9, 0.98), rgba(10, 6, 6, 0.97));
+  box-shadow:
+    0 26px 56px rgba(0, 0, 0, 0.5),
+    0 0 44px rgba(139, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: clamp(22px, 4vw, 30px);
+  overflow: hidden;
+  animation: bw-confirm-rise 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bw-confirm-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 68%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.78), transparent);
+}
+
+.bw-confirm-corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.bw-confirm-corner--tl { top: -1px; left: -1px; border-top: 1px solid rgba(212, 175, 55, 0.68); border-left: 1px solid rgba(212, 175, 55, 0.68); }
+.bw-confirm-corner--tr { top: -1px; right: -1px; border-top: 1px solid rgba(212, 175, 55, 0.68); border-right: 1px solid rgba(212, 175, 55, 0.68); }
+.bw-confirm-corner--bl { bottom: -1px; left: -1px; border-bottom: 1px solid rgba(212, 175, 55, 0.68); border-left: 1px solid rgba(212, 175, 55, 0.68); }
+.bw-confirm-corner--br { bottom: -1px; right: -1px; border-bottom: 1px solid rgba(212, 175, 55, 0.68); border-right: 1px solid rgba(212, 175, 55, 0.68); }
+
+.bw-confirm-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.bw-confirm-ornament-line {
+  height: 1px;
+  width: clamp(34px, 9vw, 56px);
+  background: linear-gradient(90deg, transparent, var(--gold));
+}
+
+.bw-confirm-ornament-line:last-child {
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.bw-confirm-ornament-diamond {
+  width: 7px;
+  height: 7px;
+  background: var(--gold-light);
+  transform: rotate(45deg);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.52);
+}
+
+.bw-confirm-title {
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(28px, 6vw, 40px);
+  letter-spacing: clamp(4px, 1.5vw, 10px);
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 0 24px rgba(139, 0, 0, 0.35);
+}
+
+.bw-confirm-kicker {
+  margin: 8px 0 0;
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(7px, 1.8vw, 9px);
+  font-weight: 300;
+  letter-spacing: clamp(3px, 1.1vw, 6px);
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.52);
+}
+
+.bw-confirm-copy {
+  margin: 12px 0 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(11px, 2.5vw, 13px);
+  line-height: 1.65;
+  letter-spacing: 0.65px;
+  color: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+.bw-confirm-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.bw-confirm-btn {
+  min-width: 132px;
+  border: 1px solid rgba(212, 175, 55, 0.34);
+  border-radius: 4px;
+  padding: 11px 15px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1.9px;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  cursor: pointer;
+  transition: border-color 0.24s ease, color 0.24s ease, background 0.24s ease, transform 0.24s ease;
+}
+
+.bw-confirm-btn:hover,
+.bw-confirm-btn:focus-visible {
+  outline: none;
+  border-color: rgba(212, 175, 55, 0.62);
+  color: rgba(255, 255, 255, 0.96);
+  background: rgba(212, 175, 55, 0.1);
+  transform: translateY(-1px);
+}
+
+.bw-confirm-btn-danger {
+  border-color: rgba(192, 57, 43, 0.5);
+  color: rgba(255, 216, 209, 0.96);
+  background: linear-gradient(135deg, rgba(192, 57, 43, 0.24), rgba(139, 0, 0, 0.2));
+}
+
+.bw-confirm-btn-danger:hover,
+.bw-confirm-btn-danger:focus-visible {
+  border-color: rgba(220, 80, 60, 0.78);
+  background: linear-gradient(135deg, rgba(212, 66, 49, 0.34), rgba(160, 18, 18, 0.28));
+}
+
+@keyframes bw-confirm-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bw-confirm-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes bw-confirm-rise {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes bw-confirm-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.985); }
+}
+
 .bw-canvas {
   position: fixed;
   inset: 0;

@@ -1,5 +1,6 @@
 import '../../css/pages/UserPanel.css';
 import { getUser, logout, authFetch } from '../auth.js';
+import { confirmLogout } from '../logout-confirm.js';
 
 const API_BASE = 'http://5.38.140.128:5000';
 
@@ -517,6 +518,9 @@ export default function UserPanel(container) {
 
   // ========== LOGOUT ==========
   const doLogout = async (button) => {
+    const confirmed = await confirmLogout();
+    if (!confirmed) return;
+
     if (button) {
       button.disabled = true;
       if (button.id === 'upLogout') {

@@ -1,5 +1,6 @@
 import '../../css/pages/Leaderboard.css';
 import { getUser, logout, authFetch } from '../auth.js';
+import { confirmLogout } from '../logout-confirm.js';
 
 const API_BASE = 'http://5.38.140.128:5000';
 
@@ -230,23 +231,20 @@ export default function Leaderboard(container) {
     }
   });
 
-  document.getElementById('lb-dd-logout')?.addEventListener('click', () => {
-    logout();
-    if (window.router?.navigate) {
-      window.router.navigate('/login');
-      return;
-    }
-    window.location.href = '/login';
-  });
+  const doLogout = async () => {
+    const confirmed = await confirmLogout();
+    if (!confirmed) return;
 
-  document.getElementById('lb-mobile-logout')?.addEventListener('click', () => {
-    logout();
+    await logout();
     if (window.router?.navigate) {
       window.router.navigate('/login');
       return;
     }
     window.location.href = '/login';
-  });
+  };
+
+  document.getElementById('lb-dd-logout')?.addEventListener('click', doLogout);
+  document.getElementById('lb-mobile-logout')?.addEventListener('click', doLogout);
 
   // ========== FETCH LEADERBOARD DATA ==========
   async function loadLeaderboard() {

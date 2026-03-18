@@ -1,5 +1,6 @@
 import '../../css/pages/Stats.css';
 import { getUser, logout } from '../auth.js';
+import { confirmLogout } from '../logout-confirm.js';
 
 export default function Stats(container) {
   container.innerHTML = `
@@ -290,6 +291,9 @@ export default function Stats(container) {
 
   // ── Logout ───────────────────────────────────────────────────────────────
   const doLogout = async () => {
+    const confirmed = await confirmLogout();
+    if (!confirmed) return;
+
     await logout();
   };
 

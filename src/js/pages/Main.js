@@ -1,5 +1,6 @@
 import '../../css/pages/Main.css';
 import { getUser, logout } from '../auth.js';
+import { confirmLogout } from '../logout-confirm.js';
 
 export default function Main(container) {
   container.innerHTML = `
@@ -391,6 +392,9 @@ export default function Main(container) {
 
   // ── Logout ───────────────────────────────────────────────────────────────
   const doLogout = async () => {
+    const confirmed = await confirmLogout();
+    if (!confirmed) return;
+
     await logout();
     // logout() already navigates to /login
   };
