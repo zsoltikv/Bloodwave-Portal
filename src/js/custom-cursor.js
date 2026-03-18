@@ -1,7 +1,9 @@
 const INTERACTIVE_SELECTOR = 'a, button, [role="button"], input, textarea, select, summary, label, [data-link]';
 const TRAIL_LENGTH = 10;
+const MOBILE_UA_REGEX = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i;
 
 let cursorRoot = null;
+let trailLayerEl = null;
 let trailDots = [];
 let trailPoints = [];
 let frameId = 0;
@@ -12,7 +14,48 @@ let targetY = 0;
 let pointerActive = false;
 
 function supportsFancyCursor() {
-  return window.matchMedia('(pointer: fine)').matches;
+  if (isPhoneDevice()) return false;
+  return window.matchMedia('(pointer: fine)').matches
+    && window.matchMedia('(hover: hover)').matches
+    && !window.matchMedia('(max-width: 900px)').matches;
+}
+
+function isPhoneDevice() {
+  const uaDataMobile = navigator.userAgentData?.mobile === true;
+  const userAgent = navigator.userAgent || '';
+  if (uaDataMobile || MOBILE_UA_REGEX.test(userAgent)) return true;
+
+  const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+  const anyCoarsePointer = window.matchMedia('(any-pointer: coarse)').matches;
+  const noHover = window.matchMedia('(hover: none)').matches;
+  const anyNoHover = window.matchMedia('(any-hover: none)').matches;
+  const smallViewport = window.matchMedia('(max-width: 1024px)').matches;
+  const hasTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
+
+  return hasTouch && (coarsePointer || anyCoarsePointer || noHover || anyNoHover) && smallViewport;
+}
+
+function teardownCustomCursor() {
+  document.documentElement.classList.remove('bw-cursor-enabled');
+
+  if (frameId) {
+    cancelAnimationFrame(frameId);
+    frameId = 0;
+  }
+
+  if (cursorRoot) {
+    cursorRoot.remove();
+    cursorRoot = null;
+  }
+
+  if (trailLayerEl) {
+    trailLayerEl.remove();
+    trailLayerEl = null;
+  }
+
+  trailDots = [];
+  trailPoints = [];
+  pointerActive = false;
 }
 
 function prefersReducedMotion() {
@@ -93,10 +136,16 @@ function setInteractiveState(target) {
 }
 
 export default function ensureCustomCursor() {
-  if (cursorRoot || !supportsFancyCursor()) return;
+  if (!supportsFancyCursor()) {
+    teardownCustomCursor();
+    return;
+  }
 
-  const { root } = createCursorElements();
+  if (cursorRoot) return;
+
+  const { root, trailLayer } = createCursorElements();
   cursorRoot = root;
+  trailLayerEl = trailLayer;
   document.documentElement.classList.add('bw-cursor-enabled');
 
   const useTrail = !prefersReducedMotion();
@@ -157,4 +206,10 @@ export default function ensureCustomCursor() {
   window.addEventListener('beforeunload', () => {
     if (frameId) cancelAnimationFrame(frameId);
   });
+
+  window.addEventListener('resize', () => {
+    if (!supportsFancyCursor()) {
+      teardownCustomCursor();
+    }
+  }, { passive: true });
 }
