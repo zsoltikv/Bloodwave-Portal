@@ -1,5 +1,10 @@
 import '../../css/pages/ToS.css';
+import { isLoggedIn } from '../auth.js';
 export default function ToS(container) {
+  const loggedIn = isLoggedIn();
+  const ctaHref = loggedIn ? '/main' : '/register';
+  const ctaLabel = loggedIn ? 'Back to Dashboard' : 'Back to Registration';
+
   container.innerHTML = `
     <div class="bw-root">
       <canvas id="tos-canvas" class="bw-canvas"></canvas>
@@ -119,9 +124,9 @@ export default function ToS(container) {
             </section>
 
             <div class="bw-footer-link" style="margin-top: 2rem; text-align: center;">
-              <a href="/register" data-link class="bw-btn" style="display: inline-block; margin-top: 1rem;">
+              <a href="${ctaHref}" data-link class="bw-btn" style="display: inline-block; margin-top: 1rem;">
                 <div class="bw-btn-shimmer"></div>
-                <span class="bw-btn-text">Back to Registration</span>
+                <span class="bw-btn-text">${ctaLabel}</span>
               </a>
             </div>
           </div>
