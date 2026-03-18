@@ -7,6 +7,12 @@ const FOOTER_VISIBLE_PATHS = ['/main', '/stats', '/leaderboard', '/user-panel'];
 const STARFIELD_PATHS = ['/', '/login', '/register', '/forgot-password', '/tos', '/main', '/stats', '/leaderboard', '/user-panel'];
 const GITHUB_PROJECT_URL = 'https://github.com/zsoltikv/Project-Bloodwave-Web';
 
+function forceScrollTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
+
 function createGlobalFooter(loggedIn) {
   const footer = document.createElement('footer');
   footer.className = 'bw-site-footer';
@@ -49,6 +55,10 @@ class Router {
     this.routes = routes;
     this.currentRoute = null;
     ensureGlobalStarfield();
+
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
     
     // Handle initial load
     window.addEventListener('DOMContentLoaded', (e) => {
@@ -118,6 +128,9 @@ class Router {
       if (showFooter) {
         app.appendChild(createGlobalFooter(loggedIn));
       }
+
+      forceScrollTop();
+      requestAnimationFrame(() => forceScrollTop());
     }
   }
 }
