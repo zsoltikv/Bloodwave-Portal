@@ -7,6 +7,7 @@ import Stats from './pages/Stats.js';
 import Leaderboard from './pages/Leaderboard.js';
 import ToS from './pages/ToS.js';
 import UserPanel from './pages/UserPanel.js';
+import ensureCustomCursor from './custom-cursor.js';
 
 // Define routes
 const routes = [
@@ -50,6 +51,7 @@ const routes = [
 
 // Initialize router
 const router = new Router(routes);
+ensureCustomCursor();
 
 // Make router globally accessible
 window.router = router;
