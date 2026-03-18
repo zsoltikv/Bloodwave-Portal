@@ -242,7 +242,9 @@
   padding: clamp(13px, 3vw, 18px) clamp(14px, 4vw, 22px);
   background: rgba(0,0,0,0.55);
   border: 1px solid rgba(139,0,0,0.25);
-  color: #F2EAEA;
+  color: #F2EAEA !important;
+  -webkit-text-fill-color: #F2EAEA !important;
+  caret-color: #F2EAEA;
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(12px, 3.2vw, 14px);
   font-weight: 300;
@@ -262,11 +264,30 @@
 
 .bw-input:focus {
   border-color: rgba(192,57,43,0.55);
+  color: #F2EAEA !important;
+  -webkit-text-fill-color: #F2EAEA !important;
   box-shadow:
     0 0 0 1px rgba(139,0,0,0.12),
     0 4px 28px rgba(139,0,0,0.12),
     inset 0 1px 0 rgba(255,255,255,0.02);
   background: rgba(12,2,2,0.75);
+}
+
+.bw-input:active,
+.bw-input:focus-visible {
+  color: #F2EAEA !important;
+  -webkit-text-fill-color: #F2EAEA !important;
+}
+
+.bw-input:-webkit-autofill,
+.bw-input:-webkit-autofill:hover,
+.bw-input:-webkit-autofill:focus,
+.bw-input:-webkit-autofill:active {
+  -webkit-text-fill-color: #F2EAEA !important;
+  caret-color: #F2EAEA;
+  -webkit-box-shadow: 0 0 0 1000px rgba(12,2,2,0.75) inset !important;
+  box-shadow: 0 0 0 1000px rgba(12,2,2,0.75) inset !important;
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 .bw-input-line {
