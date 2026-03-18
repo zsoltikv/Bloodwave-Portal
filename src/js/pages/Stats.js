@@ -295,90 +295,79 @@ export default function Stats(container) {
 }
 
 /* ======================================================================
-   CANVAS
+   CANVAS — Starry background from Profile
    ====================================================================== */
 function initStCanvas() {
   const canvas = document.getElementById('st-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+
   let W, H;
+  let stars = [];
 
   function measure() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
   }
-  measure();
-  window.addEventListener('resize', measure);
 
-  const stars = [];
-  for (let i = 0; i < 200; i++) stars.push(makeStar(true));
-
-  function makeStar(firstTime) {
-    const isRed  = Math.random() < 0.07;
-    const isGold = !isRed && Math.random() < 0.04;
-    const r      = Math.random() * 1.4 + 0.3;
-    return {
-      x: Math.random() * (W || window.innerWidth),
-      y: firstTime ? Math.random() * (H || window.innerHeight) : (H || window.innerHeight) + 5,
-      r, vx: (Math.random() - 0.5) * 0.06, vy: -(Math.random() * 0.18 + 0.04),
-      opacity: Math.random() * 0.6 + 0.2,
-      flicker: Math.random() * Math.PI * 2,
-      flickerSpeed: Math.random() * 0.02 + 0.004,
-      isRed, isGold, life: 0, maxLife: 500 + Math.random() * 700,
-    };
+  function initStars() {
+    stars = [];
+    for (let i = 0; i < 85; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.3 + 0.3,
+        opacity: Math.random() * 0.6 + 0.2,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+      });
+    }
   }
 
-  let streakTimer = 0;
-
-  function draw() {
+  function anim() {
+    // Full clear each frame so stars remain points without motion trails.
     ctx.clearRect(0, 0, W, H);
-    streakTimer++;
-    if (streakTimer > 200 + Math.random() * 200) {
-      drawStreak(ctx, W, H);
-      streakTimer = 0;
-    }
-    stars.forEach((s, i) => {
-      s.flicker += s.flickerSpeed;
-      s.life++;
-      const fade  = Math.min(s.life / 40, 1) * Math.max(1 - (s.life - s.maxLife * 0.8) / (s.maxLife * 0.2), 0);
-      const alpha = s.opacity * (0.65 + 0.35 * Math.sin(s.flicker)) * Math.max(fade, 0.01);
-      ctx.globalAlpha = Math.min(alpha, 1);
+    ctx.fillStyle = 'rgb(8,6,6)';
+    ctx.fillRect(0, 0, W, H);
+
+    stars.forEach(s => {
+      s.x += s.vx;
+      s.y += s.vy;
+      if (s.x < 0) s.x = W;
+      if (s.x > W) s.x = 0;
+      if (s.y < 0) s.y = H;
+      if (s.y > H) s.y = 0;
+
+      const glowRadius = s.r * 6;
+      const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowRadius);
+      glow.addColorStop(0, `rgba(212,175,55,${Math.min(1, s.opacity * 0.75)})`);
+      glow.addColorStop(0.35, `rgba(212,175,55,${s.opacity * 0.35})`);
+      glow.addColorStop(1, 'rgba(212,175,55,0)');
+
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, glowRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = `rgba(255,230,150,${Math.min(1, s.opacity + 0.2)})`;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = s.isRed ? '#CC1A1A' : s.isGold ? '#D4AF37' : '#FFE8D8';
       ctx.fill();
-      ctx.globalAlpha = 1;
-      s.x += s.vx; s.y += s.vy;
-      if (s.life > s.maxLife || s.y < -20 || s.x < -20 || s.x > W + 20) {
-        stars[i] = makeStar(false);
-      }
     });
-    requestAnimationFrame(draw);
+
+    requestAnimationFrame(anim);
   }
-  draw();
+
+  measure();
+  initStars();
+  anim();
+
+  window.addEventListener('resize', () => {
+    measure();
+    initStars();
+  });
 }
 
-function drawStreak(ctx, W, H) {
-  const x     = Math.random() * W;
-  const y     = Math.random() * H * 0.7;
-  const angle = (Math.PI / 4) + (Math.random() - 0.5) * 0.6;
-  const len   = 80 + Math.random() * 160;
-  const grd   = ctx.createLinearGradient(x, y, x + Math.cos(angle) * len, y + Math.sin(angle) * len);
-  grd.addColorStop(0, 'transparent');
-  grd.addColorStop(0.45, 'rgba(220,60,40,0.45)');
-  grd.addColorStop(0.55, 'rgba(255,200,180,0.6)');
-  grd.addColorStop(1, 'transparent');
-  ctx.save();
-  ctx.lineWidth = Math.random() * 1.0 + 0.3;
-  ctx.strokeStyle = grd;
-  ctx.shadowColor = 'rgba(200,50,30,0.3)';
-  ctx.shadowBlur  = 5;
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
-  ctx.stroke();
-  ctx.restore();
-}
 
 function spawnStParticles() {
   const root = document.querySelector('.st-root');

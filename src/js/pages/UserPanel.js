@@ -277,12 +277,12 @@ export default function UserPanel(container) {
 
     function initStars() {
       stars = [];
-      for (let i = 0; i < 60; i++) {
+      for (let i = 0; i < 85; i++) {
         stars.push({
           x: Math.random() * W,
           y: Math.random() * H,
           r: Math.random() * 1.3 + 0.3,
-          opacity: Math.random() * 0.5 + 0.15,
+          opacity: Math.random() * 0.6 + 0.2,
           vx: (Math.random() - 0.5) * 0.15,
           vy: (Math.random() - 0.5) * 0.15,
         });
@@ -303,9 +303,9 @@ export default function UserPanel(container) {
         if (s.y < 0) s.y = H;
         if (s.y > H) s.y = 0;
 
-        const glowRadius = s.r * 5;
+        const glowRadius = s.r * 6;
         const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowRadius);
-        glow.addColorStop(0, `rgba(212,175,55,${Math.min(1, s.opacity * 0.9)})`);
+        glow.addColorStop(0, `rgba(212,175,55,${Math.min(1, s.opacity * 0.75)})`);
         glow.addColorStop(0.35, `rgba(212,175,55,${s.opacity * 0.35})`);
         glow.addColorStop(1, 'rgba(212,175,55,0)');
 
