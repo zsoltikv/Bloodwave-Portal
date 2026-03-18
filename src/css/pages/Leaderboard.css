@@ -489,6 +489,7 @@
         max-width: 1120px;
         padding: clamp(24px, 4.5vh, 48px) clamp(16px, 4vw, 48px) clamp(14px, 3vh, 24px);
         margin: 0 auto;
+        animation: lb-rise 1.1s cubic-bezier(0.22,1,0.36,1) both 0.2s;
       }
 
       /* === HEADER === */
@@ -522,6 +523,11 @@
         animation: lb-diamond-pulse 3s ease-in-out infinite;
       }
       @keyframes lb-diamond-pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+      @keyframes lb-rise {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
 
       .lb-title {
         font-family: 'Cormorant Garamond', serif;
