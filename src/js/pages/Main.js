@@ -132,35 +132,141 @@ export default function Main(container) {
   const matchesList = container.querySelector('#mn-matches-list');
   const matchPanel  = container.querySelector('#mn-match-panel');
   let selectedMatchId = matches[0]?.id ?? null;
+  let summaryState = null;
+  let summaryAnimRunId = 0;
 
-  function renderMatchPanel(match) {
+  function ensureMatchPanelSkeleton() {
     if (!matchPanel) return;
-
-    if (!match) {
-      matchPanel.innerHTML = `
-        <div class="mn-match-empty">No played matches yet.</div>
-      `;
-      return;
-    }
+    if (matchPanel.querySelector('.mn-summary-duration')) return;
 
     matchPanel.innerHTML = `
       <h2 class="mn-panel-title">Run Summary</h2>
       <div class="mn-panel-grid">
         <div class="mn-panel-stat">
           <div class="mn-panel-label">Duration</div>
-          <div class="mn-panel-value">${formatDuration(match.durationSeconds)}</div>
+          <div class="mn-panel-value mn-summary-duration">00:00</div>
         </div>
         <div class="mn-panel-stat">
           <div class="mn-panel-label">Level Reached</div>
-          <div class="mn-panel-value">${match.levelReached}</div>
+          <div class="mn-panel-value mn-summary-level">0</div>
         </div>
         <div class="mn-panel-stat">
           <div class="mn-panel-label">Played At</div>
-          <div class="mn-panel-value">${formatPlayedAt(match.playedAt)}</div>
+          <div class="mn-panel-value mn-summary-played-at">-</div>
         </div>
       </div>
       <div class="mn-panel-note">More match data can be shown here later (kills, build, map, rewards, etc.).</div>
     `;
+  }
+
+  function triggerValueUpdateAnimation(valueEl) {
+    if (!valueEl) return;
+    valueEl.classList.remove('is-updating');
+    // Force reflow so the same class can retrigger on consecutive clicks.
+    void valueEl.offsetWidth;
+    valueEl.classList.add('is-updating');
+    valueEl.addEventListener('animationend', () => {
+      valueEl.classList.remove('is-updating');
+    }, { once: true });
+  }
+
+  function animateNumericValue(valueEl, fromValue, toValue, formatter, runId) {
+    if (!valueEl) return;
+
+    const startValue = Number.isFinite(fromValue) ? fromValue : 0;
+    const endValue = Number.isFinite(toValue) ? toValue : 0;
+
+    if (startValue === endValue) {
+      valueEl.textContent = formatter(endValue);
+      triggerValueUpdateAnimation(valueEl);
+      return;
+    }
+
+    triggerValueUpdateAnimation(valueEl);
+
+    const delta = Math.abs(endValue - startValue);
+    const duration = Math.min(650, Math.max(280, delta * 16));
+    const startTs = performance.now();
+
+    const step = (now) => {
+      if (runId !== summaryAnimRunId) return;
+
+      const progress = Math.min(1, (now - startTs) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const currentValue = Math.round(startValue + (endValue - startValue) * eased);
+
+      valueEl.textContent = formatter(currentValue);
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+
+    requestAnimationFrame(step);
+  }
+
+  function updatePlayedAtValue(valueEl, nextText) {
+    if (!valueEl) return;
+    valueEl.textContent = nextText;
+    triggerValueUpdateAnimation(valueEl);
+  }
+
+  function renderMatchPanel(match) {
+    if (!matchPanel) return;
+
+    if (!match) {
+      summaryAnimRunId += 1;
+      summaryState = null;
+      matchPanel.innerHTML = `
+        <div class="mn-match-empty">No played matches yet.</div>
+      `;
+      return;
+    }
+
+    ensureMatchPanelSkeleton();
+
+    const durationValueEl = matchPanel.querySelector('.mn-summary-duration');
+    const levelValueEl = matchPanel.querySelector('.mn-summary-level');
+    const playedAtValueEl = matchPanel.querySelector('.mn-summary-played-at');
+
+    if (!summaryState) {
+      durationValueEl.textContent = formatDuration(match.durationSeconds);
+      levelValueEl.textContent = String(match.levelReached);
+      playedAtValueEl.textContent = formatPlayedAt(match.playedAt);
+
+      summaryState = {
+        durationSeconds: match.durationSeconds,
+        levelReached: match.levelReached,
+        playedAt: match.playedAt,
+      };
+      return;
+    }
+
+    const runId = ++summaryAnimRunId;
+
+    animateNumericValue(
+      durationValueEl,
+      summaryState.durationSeconds,
+      match.durationSeconds,
+      formatDuration,
+      runId,
+    );
+
+    animateNumericValue(
+      levelValueEl,
+      summaryState.levelReached,
+      match.levelReached,
+      (value) => String(value),
+      runId,
+    );
+
+    updatePlayedAtValue(playedAtValueEl, formatPlayedAt(match.playedAt));
+
+    summaryState = {
+      durationSeconds: match.durationSeconds,
+      levelReached: match.levelReached,
+      playedAt: match.playedAt,
+    };
   }
 
   function renderMatches() {
@@ -194,12 +300,36 @@ export default function Main(container) {
     renderMatchPanel(matches.find((m) => m.id === selectedMatchId));
   }
 
+  function syncActiveMatchItem(previousSelectedId = null) {
+    if (!matchesList) return;
+
+    const items = matchesList.querySelectorAll('.mn-match-item');
+    items.forEach((item) => {
+      const isActive = item.dataset.matchId === selectedMatchId;
+      item.classList.toggle('active', isActive);
+      item.setAttribute('aria-selected', String(isActive));
+    });
+
+    const activeItem = matchesList.querySelector(`.mn-match-item[data-match-id="${selectedMatchId}"]`);
+    if (activeItem && previousSelectedId !== selectedMatchId) {
+      activeItem.classList.remove('is-activating');
+      // Force reflow so animation always retriggers on selection change.
+      void activeItem.offsetWidth;
+      activeItem.classList.add('is-activating');
+      activeItem.addEventListener('animationend', () => {
+        activeItem.classList.remove('is-activating');
+      }, { once: true });
+    }
+  }
+
   matchesList?.addEventListener('click', (e) => {
     const target = e.target.closest('.mn-match-item');
     if (!target) return;
 
+    const prevSelectedId = selectedMatchId;
     selectedMatchId = target.dataset.matchId;
-    renderMatches();
+    syncActiveMatchItem(prevSelectedId);
+    renderMatchPanel(matches.find((m) => m.id === selectedMatchId));
   });
 
   renderMatches();

@@ -597,6 +597,22 @@
         text-shadow: 0 0 24px rgba(139,0,0,0.3);
       }
 
+      .st-card-value.is-counting {
+        animation: st-count-pulse 0.44s ease-in-out infinite alternate;
+        color: rgba(255,245,210,0.96);
+      }
+
+      @keyframes st-count-pulse {
+        from {
+          text-shadow: 0 0 10px rgba(212,175,55,0.22), 0 0 22px rgba(139,0,0,0.25);
+          transform: translateY(1px);
+        }
+        to {
+          text-shadow: 0 0 18px rgba(212,175,55,0.38), 0 0 34px rgba(139,0,0,0.28);
+          transform: translateY(0);
+        }
+      }
+
       .st-card-unit {
         font-family: 'Montserrat', sans-serif;
         font-size: clamp(8px, 1.5vw, 10px);

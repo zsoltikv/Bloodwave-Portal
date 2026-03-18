@@ -117,7 +117,7 @@ export default function Stats(container) {
                 </div>
                 <div class="st-card-name">Damage Dealt</div>
                 <div class="st-card-sep"></div>
-                <div class="st-card-value">1,482,390</div>
+                <div class="st-card-value js-st-count" data-type="int" data-target="1482390">1,482,390</div>
                 <div class="st-card-unit">total damage</div>
               </div>
             </div>
@@ -136,7 +136,7 @@ export default function Stats(container) {
                 </div>
                 <div class="st-card-name">Enemies Killed</div>
                 <div class="st-card-sep"></div>
-                <div class="st-card-value">8,741</div>
+                <div class="st-card-value js-st-count" data-type="int" data-target="8741">8,741</div>
                 <div class="st-card-unit">eliminations</div>
               </div>
             </div>
@@ -155,7 +155,7 @@ export default function Stats(container) {
                 </div>
                 <div class="st-card-name">Time Lived</div>
                 <div class="st-card-sep"></div>
-                <div class="st-card-value">347h 12m</div>
+                <div class="st-card-value js-st-count" data-type="time-hm" data-target="20832">347h 12m</div>
                 <div class="st-card-unit">total survival time</div>
               </div>
             </div>
@@ -174,7 +174,7 @@ export default function Stats(container) {
                 </div>
                 <div class="st-card-name">Deaths</div>
                 <div class="st-card-sep"></div>
-                <div class="st-card-value">2,103</div>
+                <div class="st-card-value js-st-count" data-type="int" data-target="2103">2,103</div>
                 <div class="st-card-unit">times fallen</div>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function Stats(container) {
                 </div>
                 <div class="st-card-name">Matches Played</div>
                 <div class="st-card-sep"></div>
-                <div class="st-card-value">3,256</div>
+                <div class="st-card-value js-st-count" data-type="int" data-target="3256">3,256</div>
                 <div class="st-card-unit">total games</div>
               </div>
             </div>
@@ -212,7 +212,7 @@ export default function Stats(container) {
                 </div>
                 <div class="st-card-name">K / D Ratio</div>
                 <div class="st-card-sep"></div>
-                <div class="st-card-value">4.16</div>
+                <div class="st-card-value js-st-count" data-type="decimal" data-target="4.16">4.16</div>
                 <div class="st-card-unit">kills per death</div>
               </div>
             </div>
@@ -227,6 +227,7 @@ export default function Stats(container) {
   // ── Canvas starfield ──────────────────────────────────────────────────────
   initStCanvas();
   spawnStParticles();
+  animateStStats(container);
 
   const user = getUser();
   const displayName = user?.username ?? user?.email ?? 'Member';
@@ -394,5 +395,76 @@ function spawnStParticles() {
     `;
     root.appendChild(p);
   }
+}
+
+function animateStStats(container) {
+  const valueEls = container.querySelectorAll('.js-st-count');
+  if (!valueEls.length) return;
+
+  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+  function formatInt(value) {
+    return Math.round(value).toLocaleString('en-US');
+  }
+
+  function formatDecimal(value) {
+    return value.toFixed(2);
+  }
+
+  function formatHoursMinutes(totalMinutesFloat) {
+    const totalMinutes = Math.max(0, Math.round(totalMinutesFloat));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}h ${minutes}m`;
+  }
+
+  valueEls.forEach((el, index) => {
+    const type = el.dataset.type || 'int';
+    const targetValue = Number(el.dataset.target);
+    if (!Number.isFinite(targetValue)) return;
+
+    const startDelay = 140 + index * 80;
+    const duration = type === 'int' ? 900 : 780;
+    const startValue = 0;
+
+    el.classList.add('is-counting');
+
+    const render = (value) => {
+      if (type === 'time-hm') {
+        el.textContent = formatHoursMinutes(value);
+        return;
+      }
+      if (type === 'decimal') {
+        el.textContent = formatDecimal(value);
+        return;
+      }
+      el.textContent = formatInt(value);
+    };
+
+    render(startValue);
+
+    const run = () => {
+      const startTs = performance.now();
+
+      const step = (now) => {
+        const progress = Math.min(1, (now - startTs) / duration);
+        const eased = easeOutCubic(progress);
+        const current = startValue + (targetValue - startValue) * eased;
+        render(current);
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+          return;
+        }
+
+        render(targetValue);
+        el.classList.remove('is-counting');
+      };
+
+      requestAnimationFrame(step);
+    };
+
+    window.setTimeout(run, startDelay);
+  });
 }
 
