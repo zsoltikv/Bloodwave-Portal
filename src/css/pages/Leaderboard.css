@@ -683,16 +683,11 @@
         font-weight: 700;
         color: rgba(255,230,150,0.95);
         letter-spacing: 1px;
-        transition: color 0.28s ease, text-shadow 0.28s ease;
       }
 
       .lb-stat-value.is-counting {
         animation: lb-count-pulse 0.42s ease-in-out infinite alternate;
         color: rgba(255,245,215,0.98);
-      }
-
-      .lb-stat-value.is-count-settle {
-        animation: lb-count-settle 320ms cubic-bezier(0.22, 1, 0.36, 1) 1;
       }
 
       @keyframes lb-count-pulse {
@@ -703,17 +698,6 @@
         to {
           text-shadow: 0 0 14px rgba(212,175,55,0.34), 0 0 26px rgba(139,0,0,0.24);
           transform: translateY(0);
-        }
-      }
-
-      @keyframes lb-count-settle {
-        0% {
-          color: rgba(255,245,215,0.98);
-          text-shadow: 0 0 12px rgba(212,175,55,0.32), 0 0 24px rgba(139,0,0,0.22);
-        }
-        100% {
-          color: rgba(255,230,150,0.95);
-          text-shadow: 0 0 0 rgba(212,175,55,0);
         }
       }
 
