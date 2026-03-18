@@ -4,11 +4,15 @@
       .lb-root {
         --lb-nav-h: clamp(56px, 7vh, 68px);
         --lb-ornament-gap: clamp(26px, 4.2vh, 36px);
-        min-height: 100%;
+        min-height: auto;
         background: var(--obsidian);
         font-family: 'Montserrat', sans-serif;
         position: relative;
         overflow-x: hidden;
+      }
+
+      #app[data-route="/leaderboard"][data-has-footer="true"] .bw-route-view {
+        flex: 0 0 auto;
       }
 
       /* === NAVBAR === */
@@ -543,7 +547,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: clamp(16px, 3vw, 24px);
-        margin-bottom: clamp(40px, 8vh, 80px);
+        margin-bottom: 0;
       }
 
       .lb-card {
