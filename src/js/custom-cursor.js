@@ -12,6 +12,7 @@ let currentY = 0;
 let targetX = 0;
 let targetY = 0;
 let pointerActive = false;
+let listenersController = null;
 
 function supportsFancyCursor() {
   if (isPhoneDevice()) return false;
@@ -36,6 +37,11 @@ function isPhoneDevice() {
 }
 
 function teardownCustomCursor() {
+  if (listenersController) {
+    listenersController.abort();
+    listenersController = null;
+  }
+
   document.documentElement.classList.remove('bw-cursor-enabled');
 
   if (frameId) {
@@ -146,6 +152,7 @@ export default function ensureCustomCursor() {
   const { root, trailLayer } = createCursorElements();
   cursorRoot = root;
   trailLayerEl = trailLayer;
+  listenersController = new AbortController();
   document.documentElement.classList.add('bw-cursor-enabled');
 
   const useTrail = !prefersReducedMotion();
@@ -155,6 +162,8 @@ export default function ensureCustomCursor() {
   }
 
   const handlePointerMove = (event) => {
+    if (!cursorRoot) return;
+
     pointerActive = true;
     targetX = event.clientX;
     targetY = event.clientY;
@@ -173,43 +182,46 @@ export default function ensureCustomCursor() {
   };
 
   const handlePointerDown = (event) => {
-    if (!pointerActive) return;
+    if (!cursorRoot || !pointerActive) return;
     setInteractiveState(event.target);
     cursorRoot.classList.add('bw-cursor--pressed');
   };
 
   const clearPressed = () => {
+    if (!cursorRoot) return;
     cursorRoot.classList.remove('bw-cursor--pressed');
   };
 
   const handlePointerLeaveWindow = (event) => {
+    if (!cursorRoot) return;
     if (event.relatedTarget !== null) return;
     pointerActive = false;
     cursorRoot.classList.remove('bw-cursor--visible', 'bw-cursor--active', 'bw-cursor--pressed');
   };
 
   const handleVisibility = () => {
+    if (!cursorRoot) return;
     if (!document.hidden) return;
     pointerActive = false;
     cursorRoot.classList.remove('bw-cursor--visible', 'bw-cursor--active', 'bw-cursor--pressed');
   };
 
-  document.addEventListener('pointermove', handlePointerMove, { passive: true });
-  document.addEventListener('mouseover', (event) => setInteractiveState(event.target), { passive: true });
-  document.addEventListener('pointerdown', handlePointerDown, { passive: true });
-  document.addEventListener('pointerup', clearPressed, { passive: true });
-  window.addEventListener('mouseout', handlePointerLeaveWindow);
-  document.addEventListener('visibilitychange', handleVisibility);
+  document.addEventListener('pointermove', handlePointerMove, { passive: true, signal: listenersController.signal });
+  document.addEventListener('mouseover', (event) => setInteractiveState(event.target), { passive: true, signal: listenersController.signal });
+  document.addEventListener('pointerdown', handlePointerDown, { passive: true, signal: listenersController.signal });
+  document.addEventListener('pointerup', clearPressed, { passive: true, signal: listenersController.signal });
+  window.addEventListener('mouseout', handlePointerLeaveWindow, { signal: listenersController.signal });
+  document.addEventListener('visibilitychange', handleVisibility, { signal: listenersController.signal });
 
   animate();
 
   window.addEventListener('beforeunload', () => {
     if (frameId) cancelAnimationFrame(frameId);
-  });
+  }, { signal: listenersController.signal });
 
   window.addEventListener('resize', () => {
     if (!supportsFancyCursor()) {
       teardownCustomCursor();
     }
-  }, { passive: true });
+  }, { passive: true, signal: listenersController.signal });
 }
