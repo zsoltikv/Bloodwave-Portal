@@ -103,7 +103,13 @@ export default function Stats(container) {
           </div>
 
           <!-- Stat cards -->
-          <div class="st-grid">
+          <div class="st-sections">
+            <section class="st-stat-section">
+              <div class="st-section-head">
+                <h2 class="st-section-title">Core Totals</h2>
+                <p class="st-section-subtitle">Overall lifetime volume</p>
+              </div>
+              <div class="st-grid st-grid--section">
 
             <!-- Damage Dealt -->
             <div class="st-card">
@@ -200,6 +206,35 @@ export default function Stats(container) {
                 <div class="st-card-unit">total coins</div>
               </div>
             </div>
+
+            <!-- Total Levels Reached -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 17h16M7 17V9m5 8V5m5 12v-6" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Total Levels Reached</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="levels-total" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">sum of levels across runs</div>
+              </div>
+            </div>
+
+              </div>
+            </section>
+
+            <section class="st-stat-section">
+              <div class="st-section-head">
+                <h2 class="st-section-title">Per Match Efficiency</h2>
+                <p class="st-section-subtitle">Average output and pace</p>
+              </div>
+              <div class="st-grid st-grid--section">
 
             <!-- Avg Damage / Match -->
             <div class="st-card">
@@ -318,6 +353,16 @@ export default function Stats(container) {
               </div>
             </div>
 
+              </div>
+            </section>
+
+            <section class="st-stat-section">
+              <div class="st-section-head">
+                <h2 class="st-section-title">Peak Records</h2>
+                <p class="st-section-subtitle">Best single-run highlights</p>
+              </div>
+              <div class="st-grid st-grid--section">
+
             <!-- Best Match Damage -->
             <div class="st-card">
               <div class="st-card-corner st-card-corner--tl"></div>
@@ -395,6 +440,54 @@ export default function Stats(container) {
               </div>
             </div>
 
+            <!-- Best Match Coins -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l2.2 4.6 5 .7-3.6 3.4.9 4.9L12 14.3l-4.5 2.3.9-4.9-3.6-3.4 5-.7L12 3z" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Best Match Coins</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="best-coins" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">top single-match coins</div>
+              </div>
+            </div>
+
+            <!-- Best Match Score -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 17h16M7 17V9m5 8V5m5 12v-6" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Best Match Score</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="best-score" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">top weighted run score</div>
+              </div>
+            </div>
+
+              </div>
+            </section>
+
+            <section class="st-stat-section">
+              <div class="st-section-head">
+                <h2 class="st-section-title">Run Shape And Stability</h2>
+                <p class="st-section-subtitle">Session length distribution and consistency</p>
+              </div>
+              <div class="st-grid st-grid--section">
+
             <!-- Short Match Ratio -->
             <div class="st-card">
               <div class="st-card-corner st-card-corner--tl"></div>
@@ -457,7 +550,79 @@ export default function Stats(container) {
               </div>
             </div>
 
+              </div>
+            </section>
           </div>
+
+          <section class="st-viz" aria-label="Visual analytics">
+            <div class="st-viz-head">
+              <div class="st-viz-line"></div>
+              <h2 class="st-viz-title">Visual Analytics</h2>
+              <div class="st-viz-line"></div>
+            </div>
+
+            <div class="st-viz-grid">
+              <article class="st-viz-card st-viz-card--ratio">
+                <h3 class="st-viz-card-title">Match Duration Split</h3>
+                <div class="st-ratio-track" id="st-ratio-track" role="img" aria-label="Short, normal and long match ratio">
+                  <span class="st-ratio-segment short" id="st-ratio-short"></span>
+                  <span class="st-ratio-segment normal" id="st-ratio-normal"></span>
+                  <span class="st-ratio-segment long" id="st-ratio-long"></span>
+                </div>
+                <div class="st-ratio-legend">
+                  <div class="st-ratio-item"><span class="dot short"></span><span>Short (&lt;2m)</span><strong id="st-ratio-short-label">0%</strong></div>
+                  <div class="st-ratio-item"><span class="dot normal"></span><span>Normal</span><strong id="st-ratio-normal-label">0%</strong></div>
+                  <div class="st-ratio-item"><span class="dot long"></span><span>Long (&gt;10m)</span><strong id="st-ratio-long-label">0%</strong></div>
+                </div>
+              </article>
+
+              <article class="st-viz-card st-viz-card--bars">
+                <h3 class="st-viz-card-title">Per Match Performance</h3>
+                <div class="st-bars" id="st-bars">
+                  <div class="st-bar-row">
+                    <span class="st-bar-label">Damage</span>
+                    <div class="st-bar-track"><span class="st-bar-fill damage" id="st-bar-damage"></span></div>
+                    <span class="st-bar-value" id="st-bar-damage-value">0</span>
+                  </div>
+                  <div class="st-bar-row">
+                    <span class="st-bar-label">Kills</span>
+                    <div class="st-bar-track"><span class="st-bar-fill kills" id="st-bar-kills"></span></div>
+                    <span class="st-bar-value" id="st-bar-kills-value">0</span>
+                  </div>
+                  <div class="st-bar-row">
+                    <span class="st-bar-label">Coins</span>
+                    <div class="st-bar-track"><span class="st-bar-fill coins" id="st-bar-coins"></span></div>
+                    <span class="st-bar-value" id="st-bar-coins-value">0</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="st-viz-card st-viz-card--gauge">
+                <h3 class="st-viz-card-title">Stability Gauge</h3>
+                <div class="st-gauge" id="st-gauge" role="img" aria-label="Performance stability gauge">
+                  <div class="st-gauge-inner">
+                    <div class="st-gauge-value" id="st-gauge-value">0</div>
+                    <div class="st-gauge-unit">volatility %</div>
+                  </div>
+                </div>
+                <p class="st-gauge-note" id="st-gauge-note">Very stable</p>
+              </article>
+
+              <article class="st-viz-card st-viz-card--timeline">
+                <h3 class="st-viz-card-title">Last 10 Matches Timeline</h3>
+                <div class="st-timeline-wrap">
+                  <div class="st-timeline-gridlines"></div>
+                  <div class="st-timeline-line" id="st-timeline-line"></div>
+                  <div class="st-timeline-points" id="st-timeline-points" role="img" aria-label="Last ten matches timeline with hover details"></div>
+                </div>
+                <div class="st-timeline-foot">
+                  <span>older</span>
+                  <strong>match flow</strong>
+                  <span>newer</span>
+                </div>
+              </article>
+            </div>
+          </section>
         </div>
       </main>
 
@@ -568,6 +733,7 @@ async function loadAllTimeStats(container, user) {
     totalMinutesLived: 0,
     matchesPlayed: 0,
     coinsCollected: 0,
+    totalLevelsReached: 0,
     averageDamagePerMatch: 0,
     averageKillsPerMatch: 0,
     averageCoinsPerMatch: 0,
@@ -578,13 +744,17 @@ async function loadAllTimeStats(container, user) {
     bestMatchKills: 0,
     bestMatchSurvivalSeconds: 0,
     highestLevelReached: 0,
+    bestMatchCoins: 0,
+    bestMatchScore: 0,
     shortMatchRatioPercent: 0,
     longMatchRatioPercent: 0,
     performanceVolatilityPercent: 0,
+    recentTimelineMatches: [],
   };
 
   if (!playerId) {
     applyStatsToCards(container, fallbackStats);
+    renderStatsVisuals(container, fallbackStats);
     animateStStats(container);
     return;
   }
@@ -604,8 +774,10 @@ async function loadAllTimeStats(container, user) {
     const apiMatches = await parseResponsePayload(response);
     const stats = aggregateMatchStats(apiMatches);
     applyStatsToCards(container, stats);
+    renderStatsVisuals(container, stats);
   } catch {
     applyStatsToCards(container, fallbackStats);
+    renderStatsVisuals(container, fallbackStats);
   }
 
   animateStStats(container);
@@ -623,6 +795,7 @@ function applyStatsToCards(container, stats) {
   setStatTarget('time-lived', toNonNegativeInt(stats.totalMinutesLived));
   setStatTarget('matches', toNonNegativeInt(stats.matchesPlayed));
   setStatTarget('coins', toNonNegativeInt(stats.coinsCollected));
+  setStatTarget('levels-total', toNonNegativeInt(stats.totalLevelsReached));
   setStatTarget('avg-damage-match', toNonNegativeInt(stats.averageDamagePerMatch));
   setStatTarget('avg-kills-match', toNonNegativeInt(stats.averageKillsPerMatch));
   setStatTarget('avg-coins-match', toNonNegativeInt(stats.averageCoinsPerMatch));
@@ -633,6 +806,8 @@ function applyStatsToCards(container, stats) {
   setStatTarget('best-kills', toNonNegativeInt(stats.bestMatchKills));
   setStatTarget('best-survival', toNonNegativeInt(stats.bestMatchSurvivalSeconds));
   setStatTarget('highest-level', toNonNegativeInt(stats.highestLevelReached));
+  setStatTarget('best-coins', toNonNegativeInt(stats.bestMatchCoins));
+  setStatTarget('best-score', toNonNegativeInt(stats.bestMatchScore));
   setStatTarget('short-match-ratio', toNonNegativeInt(stats.shortMatchRatioPercent));
   setStatTarget('long-match-ratio', toNonNegativeInt(stats.longMatchRatioPercent));
   setStatTarget('performance-volatility', toNonNegativeInt(stats.performanceVolatilityPercent));
@@ -646,6 +821,7 @@ function aggregateMatchStats(apiMatches) {
       totalMinutesLived: 0,
       matchesPlayed: 0,
       coinsCollected: 0,
+      totalLevelsReached: 0,
       averageDamagePerMatch: 0,
       averageKillsPerMatch: 0,
       averageCoinsPerMatch: 0,
@@ -656,9 +832,12 @@ function aggregateMatchStats(apiMatches) {
       bestMatchKills: 0,
       bestMatchSurvivalSeconds: 0,
       highestLevelReached: 0,
+      bestMatchCoins: 0,
+      bestMatchScore: 0,
       shortMatchRatioPercent: 0,
       longMatchRatioPercent: 0,
       performanceVolatilityPercent: 0,
+      recentTimelineMatches: [],
     };
   }
 
@@ -669,10 +848,13 @@ function aggregateMatchStats(apiMatches) {
   let totalEnemiesKilled = 0;
   let totalDurationSeconds = 0;
   let totalCoinsCollected = 0;
+  let totalLevelsReached = 0;
   let bestMatchDamage = 0;
   let bestMatchKills = 0;
   let bestMatchSurvivalSeconds = 0;
   let highestLevelReached = 0;
+  let bestMatchCoins = 0;
+  let bestMatchScore = 0;
   let shortMatchesCount = 0;
   let longMatchesCount = 0;
   const performanceScores = [];
@@ -688,11 +870,13 @@ function aggregateMatchStats(apiMatches) {
     totalEnemiesKilled += enemiesKilled;
     totalDurationSeconds += durationSeconds;
     totalCoinsCollected += coinsCollected;
+    totalLevelsReached += levelReached;
 
     bestMatchDamage = Math.max(bestMatchDamage, damageDealt);
     bestMatchKills = Math.max(bestMatchKills, enemiesKilled);
     bestMatchSurvivalSeconds = Math.max(bestMatchSurvivalSeconds, durationSeconds);
     highestLevelReached = Math.max(highestLevelReached, levelReached);
+    bestMatchCoins = Math.max(bestMatchCoins, coinsCollected);
 
     if (durationSeconds < SHORT_MATCH_THRESHOLD_SECONDS) {
       shortMatchesCount += 1;
@@ -706,11 +890,13 @@ function aggregateMatchStats(apiMatches) {
       enemiesKilled * 120 +
       coinsCollected * 4 +
       levelReached * 250;
+    bestMatchScore = Math.max(bestMatchScore, performanceScore);
     performanceScores.push(performanceScore);
   });
 
   const matchesPlayed = apiMatches.length;
   const totalDurationMinutes = totalDurationSeconds / 60;
+  const recentTimelineMatches = buildRecentTimelineMatches(apiMatches);
 
   return {
     damageDealt: totalDamageDealt,
@@ -718,6 +904,7 @@ function aggregateMatchStats(apiMatches) {
     totalMinutesLived: Math.round(totalDurationSeconds / 60),
     matchesPlayed,
     coinsCollected: totalCoinsCollected,
+    totalLevelsReached,
     averageDamagePerMatch: toNonNegativeInt(safeDivide(totalDamageDealt, matchesPlayed)),
     averageKillsPerMatch: toNonNegativeInt(safeDivide(totalEnemiesKilled, matchesPlayed)),
     averageCoinsPerMatch: toNonNegativeInt(safeDivide(totalCoinsCollected, matchesPlayed)),
@@ -728,10 +915,55 @@ function aggregateMatchStats(apiMatches) {
     bestMatchKills,
     bestMatchSurvivalSeconds,
     highestLevelReached,
+    bestMatchCoins,
+    bestMatchScore,
     shortMatchRatioPercent: toNonNegativeInt(safeDivide(shortMatchesCount * 100, matchesPlayed)),
     longMatchRatioPercent: toNonNegativeInt(safeDivide(longMatchesCount * 100, matchesPlayed)),
     performanceVolatilityPercent: toNonNegativeInt(calculateCoefficientOfVariationPercent(performanceScores)),
+    recentTimelineMatches,
   };
+}
+
+function buildRecentTimelineMatches(apiMatches) {
+  if (!Array.isArray(apiMatches) || !apiMatches.length) return [];
+
+  const withDate = apiMatches.map((match, index) => {
+    const createdAtRaw = typeof match?.createdAt === 'string' ? match.createdAt.trim() : '';
+    const createdAt = createdAtRaw ? new Date(/(?:Z|[+\-]\d{2}:\d{2})$/i.test(createdAtRaw) ? createdAtRaw : `${createdAtRaw}Z`) : null;
+    const createdAtTime = createdAt && !Number.isNaN(createdAt.getTime()) ? createdAt.getTime() : index;
+
+    const damage = toNonNegativeInt(match?.damageDealt);
+    const kills = toNonNegativeInt(match?.enemiesKilled);
+    const coins = toNonNegativeInt(match?.coinsCollected);
+    const level = toNonNegativeInt(match?.level);
+    const durationSeconds = normalizeDurationSeconds(match?.time);
+    const performanceScore = damage + kills * 120 + coins * 4 + level * 250;
+
+    return {
+      damage,
+      kills,
+      coins,
+      level,
+      durationSeconds,
+      performanceScore,
+      createdAtTime,
+    };
+  });
+
+  return withDate
+    .sort((left, right) => left.createdAtTime - right.createdAtTime)
+    .slice(-10)
+    .map((entry, index) => ({
+      ...entry,
+      matchNumber: index + 1,
+    }));
+}
+
+function formatDurationLabel(totalSeconds) {
+  const seconds = toNonNegativeInt(totalSeconds);
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}m ${secs}s`;
 }
 
 function calculateCoefficientOfVariationPercent(values) {
@@ -806,6 +1038,124 @@ function toNonNegativeInt(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 0;
   return Math.max(0, Math.round(parsed));
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function renderStatsVisuals(container, stats) {
+  const matchesPlayed = toNonNegativeInt(stats.matchesPlayed);
+  const shortRatio = matchesPlayed > 0 ? clamp(toNonNegativeInt(stats.shortMatchRatioPercent), 0, 100) : 0;
+  const longRatio = matchesPlayed > 0 ? clamp(toNonNegativeInt(stats.longMatchRatioPercent), 0, 100) : 0;
+  const normalRatio = matchesPlayed > 0 ? clamp(100 - shortRatio - longRatio, 0, 100) : 0;
+
+  const shortEl = container.querySelector('#st-ratio-short');
+  const normalEl = container.querySelector('#st-ratio-normal');
+  const longEl = container.querySelector('#st-ratio-long');
+  if (shortEl) shortEl.style.width = `${shortRatio}%`;
+  if (normalEl) normalEl.style.width = `${normalRatio}%`;
+  if (longEl) longEl.style.width = `${longRatio}%`;
+
+  const shortLabel = container.querySelector('#st-ratio-short-label');
+  const normalLabel = container.querySelector('#st-ratio-normal-label');
+  const longLabel = container.querySelector('#st-ratio-long-label');
+  if (shortLabel) shortLabel.textContent = `${shortRatio}%`;
+  if (normalLabel) normalLabel.textContent = `${normalRatio}%`;
+  if (longLabel) longLabel.textContent = `${longRatio}%`;
+
+  const avgDamage = toNonNegativeInt(stats.averageDamagePerMatch);
+  const avgKills = toNonNegativeInt(stats.averageKillsPerMatch);
+  const avgCoins = toNonNegativeInt(stats.averageCoinsPerMatch);
+
+  // Weight values to put different units onto one comparable visual scale.
+  const damageWeighted = avgDamage;
+  const killsWeighted = avgKills * 120;
+  const coinsWeighted = avgCoins * 4;
+  const weightedBase = Math.max(damageWeighted, killsWeighted, coinsWeighted, 1);
+
+  const damageWidth = clamp(Math.round((damageWeighted / weightedBase) * 100), 0, 100);
+  const killsWidth = clamp(Math.round((killsWeighted / weightedBase) * 100), 0, 100);
+  const coinsWidth = clamp(Math.round((coinsWeighted / weightedBase) * 100), 0, 100);
+
+  const damageBar = container.querySelector('#st-bar-damage');
+  const killsBar = container.querySelector('#st-bar-kills');
+  const coinsBar = container.querySelector('#st-bar-coins');
+  if (damageBar) damageBar.style.width = `${damageWidth}%`;
+  if (killsBar) killsBar.style.width = `${killsWidth}%`;
+  if (coinsBar) coinsBar.style.width = `${coinsWidth}%`;
+
+  const damageValue = container.querySelector('#st-bar-damage-value');
+  const killsValue = container.querySelector('#st-bar-kills-value');
+  const coinsValue = container.querySelector('#st-bar-coins-value');
+  if (damageValue) damageValue.textContent = avgDamage.toLocaleString('en-US');
+  if (killsValue) killsValue.textContent = avgKills.toLocaleString('en-US');
+  if (coinsValue) coinsValue.textContent = avgCoins.toLocaleString('en-US');
+
+  const volatility = clamp(toNonNegativeInt(stats.performanceVolatilityPercent), 0, 100);
+  const gauge = container.querySelector('#st-gauge');
+  if (gauge) {
+    gauge.style.setProperty('--volatility', String(volatility));
+  }
+
+  const gaugeValue = container.querySelector('#st-gauge-value');
+  if (gaugeValue) gaugeValue.textContent = String(volatility);
+
+  const gaugeNote = container.querySelector('#st-gauge-note');
+  if (gaugeNote) {
+    if (volatility <= 15) {
+      gaugeNote.textContent = 'Very stable';
+    } else if (volatility <= 35) {
+      gaugeNote.textContent = 'Stable';
+    } else if (volatility <= 60) {
+      gaugeNote.textContent = 'Swingy';
+    } else {
+      gaugeNote.textContent = 'High variance';
+    }
+  }
+
+  const timelineLine = container.querySelector('#st-timeline-line');
+  const timelinePoints = container.querySelector('#st-timeline-points');
+  if (!timelineLine || !timelinePoints) return;
+
+  const timelineMatches = Array.isArray(stats.recentTimelineMatches) ? stats.recentTimelineMatches : [];
+  timelinePoints.innerHTML = '';
+
+  if (timelineMatches.length < 2) {
+    timelineLine.style.clipPath = 'polygon(0% 65%, 100% 65%, 100% 69%, 0% 69%)';
+    return;
+  }
+
+  const scores = timelineMatches.map((entry) => toNonNegativeInt(entry.performanceScore));
+  const maxScore = Math.max(...scores, 1);
+  const minScore = Math.min(...scores, 0);
+  const range = Math.max(1, maxScore - minScore);
+
+  const points = timelineMatches.map((entry, index) => {
+    const x = (index / (timelineMatches.length - 1)) * 100;
+    const y = 86 - ((toNonNegativeInt(entry.performanceScore) - minScore) / range) * 72;
+    return { x, y, entry };
+  });
+
+  const polygonTop = points.map((point) => `${point.x.toFixed(2)}% ${point.y.toFixed(2)}%`).join(', ');
+  timelineLine.style.clipPath = `polygon(${polygonTop}, 100% 100%, 0% 100%)`;
+
+  points.forEach((point) => {
+    const dot = document.createElement('span');
+    dot.className = 'st-timeline-point';
+    dot.style.left = `${point.x}%`;
+    dot.style.top = `${point.y}%`;
+
+    const tooltip =
+      `M${point.entry.matchNumber} | Score ${toNonNegativeInt(point.entry.performanceScore).toLocaleString('en-US')} | ` +
+      `Dmg ${toNonNegativeInt(point.entry.damage)} | K ${toNonNegativeInt(point.entry.kills)} | ` +
+      `C ${toNonNegativeInt(point.entry.coins)} | Lv ${toNonNegativeInt(point.entry.level)} | ` +
+      `${formatDurationLabel(point.entry.durationSeconds)}`;
+
+    dot.setAttribute('data-tip', tooltip);
+    dot.setAttribute('aria-label', tooltip);
+    timelinePoints.appendChild(dot);
+  });
 }
 
 /* ======================================================================
