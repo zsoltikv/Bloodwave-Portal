@@ -67,6 +67,7 @@
   min-height: 0;
   max-height: none;
   overflow-y: auto;
+  scroll-behavior: smooth;
   margin-top: clamp(6px, 1.4vh, 12px);
   padding-right: 12px;
   animation: bw-fade-in 0.8s ease both 0.3s;

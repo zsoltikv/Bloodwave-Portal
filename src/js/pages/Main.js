@@ -535,6 +535,10 @@ function getMockMatches() {
     { id: 'run-002', durationSeconds: 1548, levelReached: 19, playedAt: '2026-03-16T22:11:00' },
     { id: 'run-003', durationSeconds: 2872, levelReached: 31, playedAt: '2026-03-15T18:08:00' },
     { id: 'run-004', durationSeconds: 984,  levelReached: 12, playedAt: '2026-03-14T14:30:00' },
-    { id: 'run-005', durationSeconds: 3321, levelReached: 36, playedAt: '2026-03-13T21:56:00' },
+    { id: 'run-005', durationSeconds: 311, levelReached: 15, playedAt: '2026-03-13T21:56:00' },
+    { id: 'run-005', durationSeconds: 514, levelReached: 23, playedAt: '2026-03-13T21:56:00' },
+    { id: 'run-005', durationSeconds: 145, levelReached: 5, playedAt: '2026-03-13T21:56:00' },
+    { id: 'run-005', durationSeconds: 2245, levelReached: 6, playedAt: '2026-03-13T21:56:00' },
+    { id: 'run-005', durationSeconds: 112, levelReached: 3, playedAt: '2026-03-13T21:56:00' },
   ];
 }
