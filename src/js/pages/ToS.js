@@ -23,8 +23,7 @@ export default function ToS(container) {
               <div class="bw-ornament-diamond"></div>
               <div class="bw-ornament-line"></div>
             </div>
-            <h1 class="bw-title">Terms of Service &amp; Cookie Policy</h1>
-            <p class="bw-subtitle">The&nbsp;&nbsp;Covenant&nbsp;&nbsp;Agreement</p>
+            <h1 class="bw-title">ToS &amp; Cookie Policy</h1>
           </div>
 
           <div class="bw-tos-content">
