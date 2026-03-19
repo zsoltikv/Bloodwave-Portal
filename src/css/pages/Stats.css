@@ -421,8 +421,16 @@
       }
 
       @keyframes st-rise {
-        from { opacity: 0; transform: translateY(24px); }
-        to   { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          clip-path: inset(14px 0 0 0);
+          filter: blur(1.8px) saturate(0.9);
+        }
+        to {
+          opacity: 1;
+          clip-path: inset(0 0 0 0);
+          filter: blur(0) saturate(1);
+        }
       }
 
       /* Page header */
