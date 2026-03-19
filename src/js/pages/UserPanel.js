@@ -6,7 +6,12 @@ import { ensureGlobalStarfield } from '../global-starfield.js';
 const API_BASE = 'http://5.38.140.128:5000';
 
 export default function UserPanel(container) {
-  const user = getUser();
+  const cachedUser = getUser();
+  const profileState = {
+    username: cachedUser?.username || '',
+    email: cachedUser?.email || '',
+    createdAt: cachedUser?.createdAt || ''
+  };
 
   container.innerHTML = `
     
@@ -73,17 +78,17 @@ export default function UserPanel(container) {
           <div class="up-info-grid">
             <div class="up-info-card">
               <span class="up-info-label">👤 Username</span>
-              <span class="up-info-value">${escapeHtml(user?.username || 'N/A')}</span>
+              <span class="up-info-value" id="up-username-value">${escapeHtml(cachedUser?.username || 'N/A')}</span>
             </div>
 
             <div class="up-info-card">
               <span class="up-info-label">✉ Email</span>
-              <span class="up-info-value">${escapeHtml(user?.email || 'N/A')}</span>
+              <span class="up-info-value" id="up-email-value">${escapeHtml(cachedUser?.email || 'N/A')}</span>
             </div>
 
             <div class="up-info-card">
               <span class="up-info-label">📅 Member Since</span>
-              <span class="up-info-value">${formatDate(user?.createdAt || 'N/A')}</span>
+              <span class="up-info-value" id="up-created-at-value">${formatDate(cachedUser?.createdAt || 'N/A')}</span>
             </div>
           </div>
 
@@ -240,7 +245,64 @@ export default function UserPanel(container) {
 
   const mobileUsername = document.getElementById('up-mobile-username');
   if (mobileUsername) {
-    mobileUsername.textContent = user?.username || user?.email || 'Member';
+    mobileUsername.textContent = cachedUser?.username || cachedUser?.email || 'Member';
+  }
+
+  function applyUserToUi(userData) {
+    if (!userData) return;
+
+    profileState.username = userData.username || profileState.username;
+    profileState.email = userData.email || profileState.email;
+    profileState.createdAt = userData.createdAt || profileState.createdAt;
+
+    const usernameEl = document.getElementById('up-username-value');
+    const emailEl = document.getElementById('up-email-value');
+    const createdAtEl = document.getElementById('up-created-at-value');
+
+    if (usernameEl) usernameEl.textContent = profileState.username || 'N/A';
+    if (emailEl) emailEl.textContent = profileState.email || 'N/A';
+    if (createdAtEl) createdAtEl.textContent = formatDate(profileState.createdAt || '');
+    if (mobileUsername) {
+      mobileUsername.textContent = profileState.username || profileState.email || 'Member';
+    }
+  }
+
+  async function updateCurrentUser(payload) {
+    const res = await authFetch(`${API_BASE}/api/User/me`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || 'Failed to update profile');
+    }
+
+    const updatedUser = await res.json();
+    applyUserToUi(updatedUser);
+    return updatedUser;
+  }
+
+  async function fetchCurrentUser() {
+    try {
+      const res = await authFetch(`${API_BASE}/api/User/me`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' }
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to load profile (${res.status})`);
+      }
+
+      const userData = await res.json();
+      applyUserToUi(userData);
+    } catch (err) {
+      console.error('Failed to fetch current user profile:', err);
+    }
   }
 
   const hamburger = document.getElementById('up-hamburger');
@@ -385,20 +447,20 @@ export default function UserPanel(container) {
     submitBtn.textContent = '✦ Updating… ✦';
 
     try {
-      const res = await authFetch(`${API_BASE}/api/User/username`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
+      await updateCurrentUser({
+        username,
+        email: profileState.email
       });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || 'Failed to update username');
-      }
 
       submitBtn.textContent = '✦ Updated ✦';
       submitBtn.classList.add('success');
-      setTimeout(() => location.reload(), 1000);
+      setTimeout(() => {
+        document.getElementById('upUsernameModal').style.display = 'none';
+        document.getElementById('upUsernameForm')?.reset();
+        submitBtn.textContent = originalText;
+        submitBtn.classList.remove('success');
+        submitBtn.disabled = false;
+      }, 700);
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.classList.add('show');
@@ -431,20 +493,20 @@ export default function UserPanel(container) {
     submitBtn.textContent = '✦ Updating… ✦';
 
     try {
-      const res = await authFetch(`${API_BASE}/api/User/email`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+      await updateCurrentUser({
+        username: profileState.username,
+        email
       });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || 'Failed to update email');
-      }
 
       submitBtn.textContent = '✦ Updated ✦';
       submitBtn.classList.add('success');
-      setTimeout(() => location.reload(), 1000);
+      setTimeout(() => {
+        document.getElementById('upEmailModal').style.display = 'none';
+        document.getElementById('upEmailForm')?.reset();
+        submitBtn.textContent = originalText;
+        submitBtn.classList.remove('success');
+        submitBtn.disabled = false;
+      }, 700);
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.classList.add('show');
@@ -456,7 +518,6 @@ export default function UserPanel(container) {
   // === PASSWORD MODAL ===
   setupModal('upPasswordModal', 'upEditPassword', 'upPasswordCancel', 'upPasswordForm', async (e) => {
     e.preventDefault();
-    const current = document.getElementById('upPasswordCurrent');
     const newPass = document.getElementById('upPasswordNew');
     const confirm = document.getElementById('upPasswordConfirm');
     const errorEl = document.getElementById('upPasswordError');
@@ -466,17 +527,11 @@ export default function UserPanel(container) {
     errorEl.textContent = '';
 
     let valid = true;
-    if (!current.value) {
-      errorEl.textContent = 'Current password is required';
-      valid = false;
-    } else if (newPass.value.length < 6) {
+    if (newPass.value.length < 6) {
       errorEl.textContent = 'New password must be at least 6 characters';
       valid = false;
     } else if (newPass.value !== confirm.value) {
       errorEl.textContent = 'Passwords do not match';
-      valid = false;
-    } else if (current.value === newPass.value) {
-      errorEl.textContent = 'New password must be different';
       valid = false;
     }
 
@@ -490,24 +545,21 @@ export default function UserPanel(container) {
     submitBtn.textContent = '✦ Changing… ✦';
 
     try {
-      const res = await authFetch(`${API_BASE}/api/Auth/change-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: current.value,
-          newPassword: newPass.value,
-          confirmPassword: confirm.value
-        })
+      await updateCurrentUser({
+        username: profileState.username,
+        email: profileState.email,
+        password: newPass.value
       });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || 'Failed to change password');
-      }
 
       submitBtn.textContent = '✦ Changed ✦';
       submitBtn.classList.add('success');
-      setTimeout(() => location.reload(), 1000);
+      setTimeout(() => {
+        document.getElementById('upPasswordModal').style.display = 'none';
+        document.getElementById('upPasswordForm')?.reset();
+        submitBtn.textContent = originalText;
+        submitBtn.classList.remove('success');
+        submitBtn.disabled = false;
+      }, 700);
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.classList.add('show');
@@ -556,5 +608,6 @@ export default function UserPanel(container) {
 
   // ========== INIT ==========
   ensureGlobalStarfield();
+  fetchCurrentUser();
 }
 

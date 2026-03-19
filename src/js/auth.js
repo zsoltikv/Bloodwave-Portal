@@ -136,7 +136,7 @@ export async function ensureValidToken() {
 // ─── Auth endpoints ────────────────────────────────────────────────────────────
 
 export async function register(username, email, password) {
-  const res  = await fetch(`${API_BASE}/api/user/register`, {
+  const res  = await fetch(`${API_BASE}/api/user`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ username, email, password }),
