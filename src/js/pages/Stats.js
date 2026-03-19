@@ -201,6 +201,262 @@ export default function Stats(container) {
               </div>
             </div>
 
+            <!-- Avg Damage / Match -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m9-9H3" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Avg Damage / Match</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="avg-damage-match" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">damage per game</div>
+              </div>
+            </div>
+
+            <!-- Avg Kills / Match -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5v14" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Avg Kills / Match</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="avg-kills-match" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">kills per game</div>
+              </div>
+            </div>
+
+            <!-- Avg Coins / Match -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Avg Coins / Match</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="avg-coins-match" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">coins per game</div>
+              </div>
+            </div>
+
+            <!-- Avg Kills / Minute -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Avg Kills / Minute</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="avg-kills-minute" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">kills per minute</div>
+              </div>
+            </div>
+
+            <!-- Avg Damage / Minute -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 16h10" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Avg Damage / Minute</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="avg-damage-minute" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">damage per minute</div>
+              </div>
+            </div>
+
+            <!-- Avg Survival / Match -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Avg Survival / Match</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="avg-survival-match" data-type="time-hms" data-target="0">0h 0m 0s</div>
+                <div class="st-card-unit">time per game</div>
+              </div>
+            </div>
+
+            <!-- Best Match Damage -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l2.4 4.8 5.3.8-3.8 3.7.9 5.2-4.8-2.5-4.8 2.5.9-5.2L4.3 8.6l5.3-.8L12 3z" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Best Match Damage</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="best-damage" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">top single-match damage</div>
+              </div>
+            </div>
+
+            <!-- Best Match Kills -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l2 6h6l-5 3.5L17 19l-5-4-5 4 2-6.5L4 9h6l2-6z" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Best Match Kills</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="best-kills" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">top single-match kills</div>
+              </div>
+            </div>
+
+            <!-- Best Match Survival -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l3.5 2" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Best Match Survival</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="best-survival" data-type="time-hms" data-target="0">0h 0m 0s</div>
+                <div class="st-card-unit">longest single match</div>
+              </div>
+            </div>
+
+            <!-- Highest Level Reached -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 17h16M7 17V9m5 8V5m5 12v-6" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Highest Level Reached</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="highest-level" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">all-time best level</div>
+              </div>
+            </div>
+
+            <!-- Short Match Ratio -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v4" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 12l2 1" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Short Match Ratio</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="short-match-ratio" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">under 2 min (%)</div>
+              </div>
+            </div>
+
+            <!-- Long Match Ratio -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v7" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 13l3 2" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Long Match Ratio</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="long-match-ratio" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">over 10 min (%)</div>
+              </div>
+            </div>
+
+            <!-- Performance Volatility -->
+            <div class="st-card">
+              <div class="st-card-corner st-card-corner--tl"></div>
+              <div class="st-card-corner st-card-corner--tr"></div>
+              <div class="st-card-corner st-card-corner--bl"></div>
+              <div class="st-card-corner st-card-corner--br"></div>
+              <div class="st-card-body">
+                <div class="st-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="rgba(192,57,43,0.8)" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18" />
+                  </svg>
+                </div>
+                <div class="st-card-name">Performance Volatility</div>
+                <div class="st-card-sep"></div>
+                <div class="st-card-value js-st-count" data-stat="performance-volatility" data-type="int" data-target="0">0</div>
+                <div class="st-card-unit">lower = more stable (%)</div>
+              </div>
+            </div>
+
           </div>
         </div>
       </main>
@@ -312,6 +568,19 @@ async function loadAllTimeStats(container, user) {
     totalMinutesLived: 0,
     matchesPlayed: 0,
     coinsCollected: 0,
+    averageDamagePerMatch: 0,
+    averageKillsPerMatch: 0,
+    averageCoinsPerMatch: 0,
+    averageKillsPerMinute: 0,
+    averageDamagePerMinute: 0,
+    averageSurvivalSecondsPerMatch: 0,
+    bestMatchDamage: 0,
+    bestMatchKills: 0,
+    bestMatchSurvivalSeconds: 0,
+    highestLevelReached: 0,
+    shortMatchRatioPercent: 0,
+    longMatchRatioPercent: 0,
+    performanceVolatilityPercent: 0,
   };
 
   if (!playerId) {
@@ -354,6 +623,19 @@ function applyStatsToCards(container, stats) {
   setStatTarget('time-lived', toNonNegativeInt(stats.totalMinutesLived));
   setStatTarget('matches', toNonNegativeInt(stats.matchesPlayed));
   setStatTarget('coins', toNonNegativeInt(stats.coinsCollected));
+  setStatTarget('avg-damage-match', toNonNegativeInt(stats.averageDamagePerMatch));
+  setStatTarget('avg-kills-match', toNonNegativeInt(stats.averageKillsPerMatch));
+  setStatTarget('avg-coins-match', toNonNegativeInt(stats.averageCoinsPerMatch));
+  setStatTarget('avg-kills-minute', toNonNegativeInt(stats.averageKillsPerMinute));
+  setStatTarget('avg-damage-minute', toNonNegativeInt(stats.averageDamagePerMinute));
+  setStatTarget('avg-survival-match', toNonNegativeInt(stats.averageSurvivalSecondsPerMatch));
+  setStatTarget('best-damage', toNonNegativeInt(stats.bestMatchDamage));
+  setStatTarget('best-kills', toNonNegativeInt(stats.bestMatchKills));
+  setStatTarget('best-survival', toNonNegativeInt(stats.bestMatchSurvivalSeconds));
+  setStatTarget('highest-level', toNonNegativeInt(stats.highestLevelReached));
+  setStatTarget('short-match-ratio', toNonNegativeInt(stats.shortMatchRatioPercent));
+  setStatTarget('long-match-ratio', toNonNegativeInt(stats.longMatchRatioPercent));
+  setStatTarget('performance-volatility', toNonNegativeInt(stats.performanceVolatilityPercent));
 }
 
 function aggregateMatchStats(apiMatches) {
@@ -364,28 +646,122 @@ function aggregateMatchStats(apiMatches) {
       totalMinutesLived: 0,
       matchesPlayed: 0,
       coinsCollected: 0,
+      averageDamagePerMatch: 0,
+      averageKillsPerMatch: 0,
+      averageCoinsPerMatch: 0,
+      averageKillsPerMinute: 0,
+      averageDamagePerMinute: 0,
+      averageSurvivalSecondsPerMatch: 0,
+      bestMatchDamage: 0,
+      bestMatchKills: 0,
+      bestMatchSurvivalSeconds: 0,
+      highestLevelReached: 0,
+      shortMatchRatioPercent: 0,
+      longMatchRatioPercent: 0,
+      performanceVolatilityPercent: 0,
     };
   }
+
+  const SHORT_MATCH_THRESHOLD_SECONDS = 2 * 60;
+  const LONG_MATCH_THRESHOLD_SECONDS = 10 * 60;
 
   let totalDamageDealt = 0;
   let totalEnemiesKilled = 0;
   let totalDurationSeconds = 0;
   let totalCoinsCollected = 0;
+  let bestMatchDamage = 0;
+  let bestMatchKills = 0;
+  let bestMatchSurvivalSeconds = 0;
+  let highestLevelReached = 0;
+  let shortMatchesCount = 0;
+  let longMatchesCount = 0;
+  const performanceScores = [];
 
   apiMatches.forEach((match) => {
-    totalDamageDealt += toNonNegativeInt(match?.damageDealt);
-    totalEnemiesKilled += toNonNegativeInt(match?.enemiesKilled);
-    totalDurationSeconds += normalizeDurationSeconds(match?.time);
-    totalCoinsCollected += toNonNegativeInt(match?.coinsCollected);
+    const damageDealt = toNonNegativeInt(match?.damageDealt);
+    const enemiesKilled = toNonNegativeInt(match?.enemiesKilled);
+    const durationSeconds = normalizeDurationSeconds(match?.time);
+    const coinsCollected = toNonNegativeInt(match?.coinsCollected);
+    const levelReached = toNonNegativeInt(match?.level);
+
+    totalDamageDealt += damageDealt;
+    totalEnemiesKilled += enemiesKilled;
+    totalDurationSeconds += durationSeconds;
+    totalCoinsCollected += coinsCollected;
+
+    bestMatchDamage = Math.max(bestMatchDamage, damageDealt);
+    bestMatchKills = Math.max(bestMatchKills, enemiesKilled);
+    bestMatchSurvivalSeconds = Math.max(bestMatchSurvivalSeconds, durationSeconds);
+    highestLevelReached = Math.max(highestLevelReached, levelReached);
+
+    if (durationSeconds < SHORT_MATCH_THRESHOLD_SECONDS) {
+      shortMatchesCount += 1;
+    }
+    if (durationSeconds > LONG_MATCH_THRESHOLD_SECONDS) {
+      longMatchesCount += 1;
+    }
+
+    const performanceScore =
+      damageDealt +
+      enemiesKilled * 120 +
+      coinsCollected * 4 +
+      levelReached * 250;
+    performanceScores.push(performanceScore);
   });
+
+  const matchesPlayed = apiMatches.length;
+  const totalDurationMinutes = totalDurationSeconds / 60;
 
   return {
     damageDealt: totalDamageDealt,
     enemiesKilled: totalEnemiesKilled,
     totalMinutesLived: Math.round(totalDurationSeconds / 60),
-    matchesPlayed: apiMatches.length,
+    matchesPlayed,
     coinsCollected: totalCoinsCollected,
+    averageDamagePerMatch: toNonNegativeInt(safeDivide(totalDamageDealt, matchesPlayed)),
+    averageKillsPerMatch: toNonNegativeInt(safeDivide(totalEnemiesKilled, matchesPlayed)),
+    averageCoinsPerMatch: toNonNegativeInt(safeDivide(totalCoinsCollected, matchesPlayed)),
+    averageKillsPerMinute: toNonNegativeInt(safeDivide(totalEnemiesKilled, totalDurationMinutes)),
+    averageDamagePerMinute: toNonNegativeInt(safeDivide(totalDamageDealt, totalDurationMinutes)),
+    averageSurvivalSecondsPerMatch: toNonNegativeInt(safeDivide(totalDurationSeconds, matchesPlayed)),
+    bestMatchDamage,
+    bestMatchKills,
+    bestMatchSurvivalSeconds,
+    highestLevelReached,
+    shortMatchRatioPercent: toNonNegativeInt(safeDivide(shortMatchesCount * 100, matchesPlayed)),
+    longMatchRatioPercent: toNonNegativeInt(safeDivide(longMatchesCount * 100, matchesPlayed)),
+    performanceVolatilityPercent: toNonNegativeInt(calculateCoefficientOfVariationPercent(performanceScores)),
   };
+}
+
+function calculateCoefficientOfVariationPercent(values) {
+  if (!Array.isArray(values) || values.length < 2) return 0;
+
+  const normalized = values
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value) && value >= 0);
+
+  if (normalized.length < 2) return 0;
+
+  const mean = normalized.reduce((sum, value) => sum + value, 0) / normalized.length;
+  if (mean <= 0) return 0;
+
+  const variance = normalized
+    .map((value) => Math.pow(value - mean, 2))
+    .reduce((sum, value) => sum + value, 0) / normalized.length;
+
+  const standardDeviation = Math.sqrt(variance);
+  return safeDivide(standardDeviation * 100, mean);
+}
+
+function safeDivide(numerator, denominator) {
+  const left = Number(numerator);
+  const right = Number(denominator);
+  if (!Number.isFinite(left) || !Number.isFinite(right) || right <= 0) {
+    return 0;
+  }
+
+  return left / right;
 }
 
 async function parseResponsePayload(response) {
@@ -553,6 +929,14 @@ function animateStStats(container) {
     return `${hours}h ${minutes}m`;
   }
 
+  function formatHoursMinutesSeconds(totalSecondsFloat) {
+    const totalSeconds = Math.max(0, Math.round(totalSecondsFloat));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
+
   valueEls.forEach((el, index) => {
     const type = el.dataset.type || 'int';
     const targetValue = Number(el.dataset.target);
@@ -567,6 +951,10 @@ function animateStStats(container) {
     const render = (value) => {
       if (type === 'time-hm') {
         el.textContent = formatHoursMinutes(value);
+        return;
+      }
+      if (type === 'time-hms') {
+        el.textContent = formatHoursMinutesSeconds(value);
         return;
       }
       if (type === 'decimal') {

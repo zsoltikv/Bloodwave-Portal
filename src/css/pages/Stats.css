@@ -506,6 +506,19 @@
       .st-card:nth-child(4) { animation-delay: 0.45s; }
       .st-card:nth-child(5) { animation-delay: 0.55s; }
       .st-card:nth-child(6) { animation-delay: 0.65s; }
+      .st-card:nth-child(7) { animation-delay: 0.75s; }
+      .st-card:nth-child(8) { animation-delay: 0.85s; }
+      .st-card:nth-child(9) { animation-delay: 0.95s; }
+      .st-card:nth-child(10) { animation-delay: 1.05s; }
+      .st-card:nth-child(11) { animation-delay: 1.15s; }
+      .st-card:nth-child(12) { animation-delay: 1.25s; }
+      .st-card:nth-child(13) { animation-delay: 1.35s; }
+      .st-card:nth-child(14) { animation-delay: 1.45s; }
+      .st-card:nth-child(15) { animation-delay: 1.55s; }
+      .st-card:nth-child(16) { animation-delay: 1.65s; }
+      .st-card:nth-child(17) { animation-delay: 1.75s; }
+      .st-card:nth-child(18) { animation-delay: 1.85s; }
+      .st-card:nth-child(19) { animation-delay: 1.95s; }
 
       @keyframes st-card-in {
         from { opacity: 0; transform: translateY(20px); }
