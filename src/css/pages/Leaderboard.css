@@ -684,6 +684,10 @@
         white-space: nowrap;
       }
 
+      .lb-you-badge.is-hidden {
+        display: none;
+      }
+
       .lb-card-you {
         border-color: rgba(212,175,55,0.55);
         box-shadow: 0 0 24px rgba(212,175,55,0.14), inset 0 0 20px rgba(212,175,55,0.05);

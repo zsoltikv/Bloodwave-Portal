@@ -271,6 +271,8 @@ export default function Leaderboard(container) {
   // ========== FETCH LEADERBOARD DATA ==========
   async function loadLeaderboard() {
     try {
+      const currentUserContext = await resolveCurrentUserContext(user);
+
       const response = await authFetch(`${API_BASE}/api/Match`, {
         method: 'GET',
         headers: { Accept: 'application/json' }
@@ -281,15 +283,17 @@ export default function Leaderboard(container) {
       const grid = document.getElementById('lb-grid');
       grid.innerHTML = '';
 
-      const leaderboardRows = buildLeaderboardRows(matches, user);
+      const leaderboardRows = buildLeaderboardRows(matches, currentUserContext);
 
       if (!leaderboardRows.length) {
         grid.innerHTML = '<div class="lb-empty">No players yet</div>';
         return;
       }
 
-      // Map: userId -> card DOM element
-      const userIdToCard = new Map();
+      // Maps for post-fetch username hydration and YOU fallback matching.
+      const userIdToUsernameEl = new Map();
+      const userIdToCardEl = new Map();
+      const userIdToYouBadgeEl = new Map();
 
       leaderboardRows.forEach((entry, index) => {
         const card = document.createElement('div');
@@ -308,7 +312,7 @@ export default function Leaderboard(container) {
             <div class="lb-card-rank">${medal}</div>
             <div class="lb-card-username-wrap">
               <div class="lb-card-username" data-user-id="${entry.userId}">Loading…</div>
-              ${entry.isCurrentUser ? '<span class="lb-you-badge">YOU</span>' : ''}
+              <span class="lb-you-badge ${entry.isCurrentUser ? '' : 'is-hidden'}">YOU</span>
             </div>
             <div class="lb-card-sep"></div>
             <div class="lb-card-stats">
@@ -325,11 +329,13 @@ export default function Leaderboard(container) {
         `;
 
         grid.appendChild(card);
-        userIdToCard.set(entry.userId, card.querySelector('.lb-card-username'));
+        userIdToUsernameEl.set(entry.userId, card.querySelector('.lb-card-username'));
+        userIdToCardEl.set(entry.userId, card);
+        userIdToYouBadgeEl.set(entry.userId, card.querySelector('.lb-you-badge'));
       });
 
       // Fetch usernames for all unique userIds
-      const userIdList = Array.from(userIdToCard.keys());
+      const userIdList = Array.from(userIdToUsernameEl.keys());
       await Promise.all(userIdList.map(async (userId) => {
         try {
           const res = await authFetch(`${API_BASE}/api/User/name?id=${encodeURIComponent(userId)}`, {
@@ -339,10 +345,18 @@ export default function Leaderboard(container) {
           if (!res.ok) throw new Error('User not found');
           const data = await res.json();
           const username = data?.username || `User #${userId}`;
-          const el = userIdToCard.get(userId);
+          const el = userIdToUsernameEl.get(userId);
           if (el) el.textContent = username;
+
+          // Fallback: if ID-based match failed (or was unavailable), match by username.
+          if (!leaderboardRows.find((row) => row.userId === userId)?.isCurrentUser && isSameUsername(username, currentUserContext?.username)) {
+            const cardEl = userIdToCardEl.get(userId);
+            const badgeEl = userIdToYouBadgeEl.get(userId);
+            if (cardEl) cardEl.classList.add('lb-card-you');
+            if (badgeEl) badgeEl.classList.remove('is-hidden');
+          }
         } catch {
-          const el = userIdToCard.get(userId);
+          const el = userIdToUsernameEl.get(userId);
           if (el) el.textContent = `User #${userId}`;
         }
       }));
@@ -382,7 +396,7 @@ export default function Leaderboard(container) {
   }
 
   function resolveCurrentUserId(currentUser) {
-    const candidates = [currentUser?.id, currentUser?.userId, currentUser?.playerId];
+    const candidates = [currentUser?.id, currentUser?.userId, currentUser?.playerId, currentUser?.Id, currentUser?.UserId, currentUser?.PlayerId];
     for (const candidate of candidates) {
       const parsed = Number(candidate);
       if (Number.isInteger(parsed) && parsed > 0) {
@@ -391,6 +405,45 @@ export default function Leaderboard(container) {
     }
 
     return null;
+  }
+
+  function normalizeUsername(value) {
+    if (!value) return '';
+    return String(value).trim().toLowerCase();
+  }
+
+  function isSameUsername(left, right) {
+    const leftNorm = normalizeUsername(left);
+    const rightNorm = normalizeUsername(right);
+    return Boolean(leftNorm) && Boolean(rightNorm) && leftNorm === rightNorm;
+  }
+
+  async function resolveCurrentUserContext(cachedUser) {
+    const fallback = {
+      id: resolveCurrentUserId(cachedUser),
+      username: cachedUser?.username || cachedUser?.email || null,
+    };
+
+    try {
+      const res = await authFetch(`${API_BASE}/api/User/me`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      });
+      if (!res.ok) return fallback;
+
+      const me = await res.json();
+      const meContext = {
+        id: resolveCurrentUserId(me),
+        username: me?.username || me?.email || fallback.username,
+      };
+
+      return {
+        id: meContext.id ?? fallback.id,
+        username: meContext.username,
+      };
+    } catch {
+      return fallback;
+    }
   }
 
   function buildLeaderboardRows(matches, currentUser) {
