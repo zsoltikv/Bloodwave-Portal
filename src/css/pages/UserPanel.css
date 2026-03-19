@@ -294,7 +294,7 @@
         display: flex;
         align-items: flex-start;
         justify-content: center;
-        padding-bottom: clamp(16px, 3vh, 28px);
+        padding-bottom: clamp(12px, 2.6vh, 24px);
       }
 
       .up-container {
@@ -472,7 +472,7 @@
         background: linear-gradient(135deg, rgba(28,8,8,0.96) 0%, rgba(18,4,4,0.94) 100%);
         border: 1.5px solid rgba(212,175,55,0.18);
         border-radius: 2px;
-        margin-bottom: clamp(40px, 6vh, 60px);
+        margin-bottom: clamp(18px, 3vh, 28px);
         animation: up-panel-in 1.2s cubic-bezier(0.22,1,0.36,1) both 0.5s;
       }
 
@@ -569,6 +569,7 @@
       .up-logout-section {
         display: flex;
         justify-content: center;
+        margin-bottom: 0;
         animation: up-logout-in 1.3s cubic-bezier(0.22,1,0.36,1) both 0.6s;
       }
 
@@ -942,6 +943,10 @@
         .up-modal-card {
           max-width: 100%;
           padding: clamp(20px, 5vw, 28px);
+        }
+
+        .up-logout-section {
+          margin-bottom: 0;
         }
 
 
