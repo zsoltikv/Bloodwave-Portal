@@ -1,7 +1,9 @@
 import '../../css/pages/Main.css';
-import { getUser, logout } from '../auth.js';
+import { getUser, logout, authFetch } from '../auth.js';
 import { confirmLogout } from '../logout-confirm.js';
 import { ensureGlobalStarfield } from '../global-starfield.js';
+
+const API_BASE = 'http://5.38.140.128:5000';
 
 export default function Main(container) {
   container.innerHTML = `
@@ -128,10 +130,10 @@ export default function Main(container) {
   if (mobileUsername) mobileUsername.textContent = displayName;
 
   // ── Matches list + details ───────────────────────────────────────────────
-  const matches = getMockMatches();
+  let matches = [];
   const matchesList = container.querySelector('#mn-matches-list');
   const matchPanel  = container.querySelector('#mn-match-panel');
-  let selectedMatchId = matches[0]?.id ?? null;
+  let selectedMatchId = null;
   let summaryState = null;
   let summaryAnimRunId = 0;
 
@@ -332,7 +334,47 @@ export default function Main(container) {
     renderMatchPanel(matches.find((m) => m.id === selectedMatchId));
   });
 
-  renderMatches();
+  if (matchesList) {
+    matchesList.innerHTML = '<div class="mn-match-empty">Loading played matches...</div>';
+  }
+  renderMatchPanel(null);
+  loadMatches();
+
+  async function loadMatches() {
+    const playerId = resolvePlayerId(user);
+
+    if (!playerId) {
+      matches = [];
+      selectedMatchId = null;
+      summaryState = null;
+      renderMatches();
+      return;
+    }
+
+    try {
+      const response = await authFetch(`${API_BASE}/api/Match/player?playerId=${encodeURIComponent(playerId)}`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch matches');
+      }
+
+      const apiMatches = await parseResponsePayload(response);
+      matches = mapApiMatches(apiMatches);
+      selectedMatchId = matches[0]?.id ?? null;
+      summaryState = null;
+      renderMatches();
+    } catch {
+      matches = [];
+      selectedMatchId = null;
+      summaryState = null;
+      renderMatches();
+    }
+  }
 
   // ── Hamburger toggle ──────────────────────────────────────────────────────
   const hamburger   = container.querySelector('#mn-hamburger');
@@ -529,16 +571,72 @@ function formatPlayedAt(isoDateString) {
   }).format(new Date(isoDateString));
 }
 
-function getMockMatches() {
-  return [
-    { id: 'run-001', durationSeconds: 2194, levelReached: 24, playedAt: '2026-03-17T20:43:00' },
-    { id: 'run-002', durationSeconds: 1548, levelReached: 19, playedAt: '2026-03-16T22:11:00' },
-    { id: 'run-003', durationSeconds: 2872, levelReached: 31, playedAt: '2026-03-15T18:08:00' },
-    { id: 'run-004', durationSeconds: 984,  levelReached: 12, playedAt: '2026-03-14T14:30:00' },
-    { id: 'run-005', durationSeconds: 311, levelReached: 15, playedAt: '2026-03-13T21:56:00' },
-    { id: 'run-005', durationSeconds: 514, levelReached: 23, playedAt: '2026-03-13T21:56:00' },
-    { id: 'run-005', durationSeconds: 145, levelReached: 5, playedAt: '2026-03-13T21:56:00' },
-    { id: 'run-005', durationSeconds: 2245, levelReached: 6, playedAt: '2026-03-13T21:56:00' },
-    { id: 'run-005', durationSeconds: 112, levelReached: 3, playedAt: '2026-03-13T21:56:00' },
-  ];
+async function parseResponsePayload(response) {
+  const raw = await response.text();
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function resolvePlayerId(user) {
+  const candidates = [user?.id, user?.userId, user?.playerId];
+  for (const candidate of candidates) {
+    const value = Number(candidate);
+    if (Number.isInteger(value) && value > 0) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function mapApiMatches(apiMatches) {
+  if (!Array.isArray(apiMatches)) return [];
+
+  return apiMatches
+    .map((match, index) => {
+      const playedAt = normalizePlayedAt(match?.createdAt);
+      return {
+        id: String(match?.id ?? `run-${index + 1}`),
+        durationSeconds: normalizeDurationSeconds(match?.time),
+        levelReached: toNonNegativeInt(match?.level),
+        playedAt,
+      };
+    })
+    .sort((left, right) => new Date(right.playedAt).getTime() - new Date(left.playedAt).getTime());
+}
+
+function normalizeDurationSeconds(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+
+  const nonNegative = Math.max(0, parsed);
+
+  // API currently returns match time in milliseconds.
+  // Values above one day in seconds are treated as ms to keep UI readable.
+  if (nonNegative >= 86_400) {
+    return Math.round(nonNegative / 1000);
+  }
+
+  return Math.round(nonNegative);
+}
+
+function toNonNegativeInt(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.max(0, Math.round(parsed));
+}
+
+function normalizePlayedAt(value) {
+  const date = value ? new Date(value) : null;
+  if (date && !Number.isNaN(date.getTime())) {
+    return date.toISOString();
+  }
+
+  return new Date(0).toISOString();
 }
