@@ -220,6 +220,45 @@ body {
   text-align: center;
 }
 
+.bw-confirm-field {
+  display: block;
+  margin: 16px 0 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.62);
+}
+
+.bw-confirm-input {
+  width: 100%;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 4px;
+  padding: 11px 12px;
+  background: rgba(8, 6, 6, 0.6);
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bw-confirm-input:focus {
+  outline: none;
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.18);
+}
+
+.bw-confirm-error {
+  min-height: 16px;
+  margin: 8px 0 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  color: rgba(255, 130, 110, 0.95);
+}
+
 .bw-confirm-actions {
   margin-top: 22px;
   display: flex;

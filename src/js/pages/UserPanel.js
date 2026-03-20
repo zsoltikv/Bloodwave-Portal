@@ -1,6 +1,6 @@
 import '../../css/pages/UserPanel.css';
 import { getUser, logout, authFetch } from '../auth.js';
-import { confirmLogout } from '../logout-confirm.js';
+import { confirmLogout, confirmDeleteAccount } from '../logout-confirm.js';
 import { ensureGlobalStarfield } from '../global-starfield.js';
 
 const API_BASE = 'http://5.38.140.128:5000';
@@ -145,6 +145,7 @@ export default function UserPanel(container) {
 
           <!-- LOGOUT SECTION -->
           <div class="up-logout-section">
+            <button class="up-logout-btn up-delete-btn" id="upDeleteAccount">✦ Delete Account ✦</button>
             <button class="up-logout-btn" id="upLogout">✦ Logout ✦</button>
           </div>
 
@@ -595,6 +596,48 @@ export default function UserPanel(container) {
 
   document.getElementById('up-mobile-logout')?.addEventListener('click', async () => {
     await doLogout(document.getElementById('up-mobile-logout'));
+  });
+
+  const doDeleteAccount = async (button) => {
+    const expectedUsername = (profileState.username || cachedUser?.username || '').trim();
+    const confirmation = await confirmDeleteAccount(expectedUsername);
+    if (!confirmation || confirmation.confirmed !== true) return;
+
+    const originalText = button?.textContent || '';
+    if (button) {
+      button.disabled = true;
+      button.textContent = '✦ Deleting… ✦';
+    }
+
+    try {
+      const response = await authFetch(`${API_BASE}/api/User/me`, {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          password: confirmation.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => ({}));
+        throw new Error(errorPayload?.message || 'Failed to delete account.');
+      }
+
+      await logout();
+    } catch (err) {
+      console.error('Delete account error:', err);
+      window.alert(err?.message || 'Could not delete account. Please try again.');
+      if (button) {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
+  };
+
+  document.getElementById('upDeleteAccount')?.addEventListener('click', async () => {
+    await doDeleteAccount(document.getElementById('upDeleteAccount'));
   });
 
   document.getElementById('upBackToDashboard')?.addEventListener('click', (e) => {

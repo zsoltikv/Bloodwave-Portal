@@ -569,6 +569,9 @@
       .up-logout-section {
         display: flex;
         justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
         margin-bottom: 0;
         animation: up-logout-in 1.3s cubic-bezier(0.22,1,0.36,1) both 0.6s;
       }
@@ -624,6 +627,25 @@
       .up-logout-btn:disabled {
         opacity: 0.6;
         cursor: not-allowed;
+      }
+
+      .up-delete-btn {
+        border-color: rgba(170, 28, 28, 0.45);
+        color: rgba(232, 116, 103, 0.9);
+        background: linear-gradient(135deg, rgba(62,6,6,0.96) 0%, rgba(30,2,2,0.94) 100%);
+      }
+
+      .up-delete-btn::before {
+        background: linear-gradient(90deg, transparent, rgba(232,116,103,0.15), transparent);
+      }
+
+      .up-delete-btn:hover:not(:disabled) {
+        border-color: rgba(220, 75, 75, 0.72);
+        color: rgba(255, 186, 176, 0.95);
+        background: linear-gradient(135deg, rgba(120,16,16,0.38) 0%, rgba(42,4,4,0.56) 100%);
+        box-shadow:
+          0 0 12px rgba(220,75,75,0.24),
+          inset 0 0 12px rgba(220,75,75,0.08);
       }
 
       /* === MODAL OVERLAY === */
