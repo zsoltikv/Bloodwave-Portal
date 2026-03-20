@@ -2,8 +2,48 @@ import '../../css/pages/Main.css';
 import { getUser, logout, authFetch } from '../auth.js';
 import { confirmLogout } from '../logout-confirm.js';
 import { ensureGlobalStarfield } from '../global-starfield.js';
+import swordImg from '../../assets/weapons/sword.png';
+import pistolImg from '../../assets/weapons/pistol.png';
+import shotgunImg from '../../assets/weapons/shotgun.png';
+import orbitingSwordImg from '../../assets/weapons/orbiting_sword.png';
+import orbitingIceCrystalImg from '../../assets/weapons/orbiting_ice_crystal.png';
+import bloodScytheImg from '../../assets/weapons/blood_scythe.png';
+import bloodforgedSigilImg from '../../assets/items/bloodforged_sigil.png';
+import cascadeOrbImg from '../../assets/items/cascade_orb.png';
+import glassEdgeImg from '../../assets/items/glass_edge.png';
+import hasteRuneImg from '../../assets/items/haste_rune.png';
+import heartOfAscendanceImg from '../../assets/items/heart_of_ascendance.png';
+import hourglassPendantImg from '../../assets/items/hourglass_pendant.png';
+import longreachEmblemImg from '../../assets/items/longreach_emblem.png';
+import marksmanCoreImg from '../../assets/items/marksman_core.png';
+import oathbladeImg from '../../assets/items/oathblade.png';
+import orbOfHealthImg from '../../assets/items/orb_of_health.png';
+import swiftshotCharmImg from '../../assets/items/swiftshot_charm.png';
+import volleyStoneImg from '../../assets/items/volley_stone.png';
 
 const API_BASE = 'http://5.38.140.128:5000';
+const WEAPON_IMAGE_BY_ID = {
+  1: swordImg,
+  2: pistolImg,
+  3: shotgunImg,
+  4: orbitingSwordImg,
+  5: orbitingIceCrystalImg,
+  6: bloodScytheImg,
+};
+const ITEM_IMAGE_BY_ID = {
+  1: bloodforgedSigilImg,
+  2: cascadeOrbImg,
+  3: glassEdgeImg,
+  4: hasteRuneImg,
+  5: heartOfAscendanceImg,
+  6: hourglassPendantImg,
+  7: longreachEmblemImg,
+  8: marksmanCoreImg,
+  9: oathbladeImg,
+  10: orbOfHealthImg,
+  11: swiftshotCharmImg,
+  12: volleyStoneImg,
+};
 
 export default function Main(container) {
   container.innerHTML = `
@@ -154,141 +194,41 @@ export default function Main(container) {
   const matchesList = container.querySelector('#mn-matches-list');
   const matchPanel  = container.querySelector('#mn-match-panel');
   let selectedMatchId = null;
-  let summaryState = null;
-  let summaryAnimRunId = 0;
-
-  function ensureMatchPanelSkeleton() {
-    if (!matchPanel) return;
-    if (matchPanel.querySelector('.mn-summary-duration')) return;
-
-    matchPanel.innerHTML = `
-      <h2 class="mn-panel-title">Run Summary</h2>
-      <div class="mn-panel-grid">
-        <div class="mn-panel-stat">
-          <div class="mn-panel-label">Duration</div>
-          <div class="mn-panel-value mn-summary-duration">00:00</div>
-        </div>
-        <div class="mn-panel-stat">
-          <div class="mn-panel-label">Level Reached</div>
-          <div class="mn-panel-value mn-summary-level">0</div>
-        </div>
-        <div class="mn-panel-stat">
-          <div class="mn-panel-label">Played At</div>
-          <div class="mn-panel-value mn-summary-played-at">-</div>
-        </div>
-      </div>
-      <div class="mn-panel-note">More match data can be shown here later (kills, build, map, rewards, etc.).</div>
-    `;
-  }
-
-  function triggerValueUpdateAnimation(valueEl) {
-    if (!valueEl) return;
-    valueEl.classList.remove('is-updating');
-    // Force reflow so the same class can retrigger on consecutive clicks.
-    void valueEl.offsetWidth;
-    valueEl.classList.add('is-updating');
-    valueEl.addEventListener('animationend', () => {
-      valueEl.classList.remove('is-updating');
-    }, { once: true });
-  }
-
-  function animateNumericValue(valueEl, fromValue, toValue, formatter, runId) {
-    if (!valueEl) return;
-
-    const startValue = Number.isFinite(fromValue) ? fromValue : 0;
-    const endValue = Number.isFinite(toValue) ? toValue : 0;
-
-    if (startValue === endValue) {
-      valueEl.textContent = formatter(endValue);
-      triggerValueUpdateAnimation(valueEl);
-      return;
-    }
-
-    triggerValueUpdateAnimation(valueEl);
-
-    const delta = Math.abs(endValue - startValue);
-    const duration = Math.min(650, Math.max(280, delta * 16));
-    const startTs = performance.now();
-
-    const step = (now) => {
-      if (runId !== summaryAnimRunId) return;
-
-      const progress = Math.min(1, (now - startTs) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const currentValue = Math.round(startValue + (endValue - startValue) * eased);
-
-      valueEl.textContent = formatter(currentValue);
-
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      }
-    };
-
-    requestAnimationFrame(step);
-  }
-
-  function updatePlayedAtValue(valueEl, nextText) {
-    if (!valueEl) return;
-    valueEl.textContent = nextText;
-    triggerValueUpdateAnimation(valueEl);
-  }
 
   function renderMatchPanel(match) {
     if (!matchPanel) return;
 
     if (!match) {
-      summaryAnimRunId += 1;
-      summaryState = null;
       matchPanel.innerHTML = `
         <div class="mn-match-empty">No played matches yet.</div>
       `;
       return;
     }
 
-    ensureMatchPanelSkeleton();
+    const stats = [
+      { label: 'Duration', value: formatDuration(match.durationSeconds) },
+      { label: 'Level Reached', value: formatCount(match.levelReached) },
+      { label: 'Max Health', value: formatCount(match.maxHealth) },
+      { label: 'Damage Dealt', value: formatCount(match.damageDealt) },
+      { label: 'Damage Taken', value: formatCount(match.damageTaken) },
+      { label: 'Enemies Killed', value: formatCount(match.enemiesKilled) },
+      { label: 'Coins Collected', value: formatCount(match.coinsCollected) },
+      { label: 'Finished At', value: formatPlayedAt(match.playedAt) },
+    ];
 
-    const durationValueEl = matchPanel.querySelector('.mn-summary-duration');
-    const levelValueEl = matchPanel.querySelector('.mn-summary-level');
-    const playedAtValueEl = matchPanel.querySelector('.mn-summary-played-at');
-
-    if (!summaryState) {
-      durationValueEl.textContent = formatDuration(match.durationSeconds);
-      levelValueEl.textContent = String(match.levelReached);
-      playedAtValueEl.textContent = formatPlayedAt(match.playedAt);
-
-      summaryState = {
-        durationSeconds: match.durationSeconds,
-        levelReached: match.levelReached,
-        playedAt: match.playedAt,
-      };
-      return;
-    }
-
-    const runId = ++summaryAnimRunId;
-
-    animateNumericValue(
-      durationValueEl,
-      summaryState.durationSeconds,
-      match.durationSeconds,
-      formatDuration,
-      runId,
-    );
-
-    animateNumericValue(
-      levelValueEl,
-      summaryState.levelReached,
-      match.levelReached,
-      (value) => String(value),
-      runId,
-    );
-
-    updatePlayedAtValue(playedAtValueEl, formatPlayedAt(match.playedAt));
-
-    summaryState = {
-      durationSeconds: match.durationSeconds,
-      levelReached: match.levelReached,
-      playedAt: match.playedAt,
-    };
+    matchPanel.innerHTML = `
+      <h2 class="mn-panel-title">Run Summary</h2>
+      <div class="mn-panel-grid">
+        ${stats.map((stat) => `
+          <div class="mn-panel-stat">
+            <div class="mn-panel-label">${stat.label}</div>
+            <div class="mn-panel-value">${stat.value}</div>
+          </div>
+        `).join('')}
+      </div>
+      ${renderEntityTable('Weapons', match.weapons, 'weapon')}
+      ${renderEntityTable('Items', match.items, 'item')}
+    `;
   }
 
   function renderMatches() {
@@ -366,7 +306,6 @@ export default function Main(container) {
     if (!playerId) {
       matches = [];
       selectedMatchId = null;
-      summaryState = null;
       renderMatches();
       return;
     }
@@ -386,12 +325,10 @@ export default function Main(container) {
       const apiMatches = await parseResponsePayload(response);
       matches = mapApiMatches(apiMatches);
       selectedMatchId = matches[0]?.id ?? null;
-      summaryState = null;
       renderMatches();
     } catch {
       matches = [];
       selectedMatchId = null;
-      summaryState = null;
       renderMatches();
     }
   }
@@ -635,10 +572,92 @@ function mapApiMatches(apiMatches) {
         id: String(match?.id ?? `run-${index + 1}`),
         durationSeconds: normalizeDurationSeconds(match?.time),
         levelReached: toNonNegativeInt(match?.level),
+        maxHealth: toNonNegativeInt(match?.maxHealth),
+        damageDealt: toNonNegativeInt(match?.damageDealt),
+        damageTaken: toNonNegativeInt(match?.damageTaken),
+        enemiesKilled: toNonNegativeInt(match?.enemiesKilled),
+        coinsCollected: toNonNegativeInt(match?.coinsCollected),
         playedAt,
+        weapons: mapMatchEntities(match?.matchWeapons, 'weapon'),
+        items: mapMatchEntities(match?.matchItems, 'item'),
       };
     })
     .sort((left, right) => parseBackendDate(right.playedAt).getTime() - parseBackendDate(left.playedAt).getTime());
+}
+
+function mapMatchEntities(entities, type) {
+  if (!Array.isArray(entities)) return [];
+
+  return entities.map((entry, index) => {
+    const entityId = toNonNegativeInt(type === 'weapon' ? entry?.weaponId : entry?.itemId);
+    const fallbackName = type === 'weapon' ? `Weapon #${entityId || index + 1}` : `Item #${entityId || index + 1}`;
+
+    return {
+      id: toNonNegativeInt(entry?.id),
+      entityId,
+      name: normalizeEntityName(type === 'weapon' ? entry?.weaponName : entry?.itemName, fallbackName),
+      image: type === 'weapon' ? WEAPON_IMAGE_BY_ID[entityId] : ITEM_IMAGE_BY_ID[entityId],
+    };
+  });
+}
+
+function normalizeEntityName(value, fallback) {
+  const raw = typeof value === 'string' ? value.trim() : '';
+  return raw || fallback;
+}
+
+function renderEntityTable(title, entities, type) {
+  const rows = Array.isArray(entities) ? entities : [];
+
+  return `
+    <section class="mn-summary-section">
+      <div class="mn-summary-section-head">
+        <h3 class="mn-summary-section-title">${title}</h3>
+        <span class="mn-summary-section-count">${formatCount(rows.length)}</span>
+      </div>
+      ${
+        rows.length
+          ? `
+            <div class="mn-summary-table-wrap">
+              <table class="mn-summary-table" aria-label="${title}">
+                <thead>
+                  <tr>
+                    <th scope="col">Image</th>
+                    <th scope="col">Name</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows.map((entry) => `
+                    <tr>
+                      <td>
+                        <div class="mn-summary-entity">
+                          ${entry.image ? `<img class="mn-summary-entity-image" src="${entry.image}" alt="${escapeHtml(entry.name)}">` : '<div class="mn-summary-entity-fallback">-</div>'}
+                        </div>
+                      </td>
+                      <td>${escapeHtml(entry.name)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `
+          : `<div class="mn-summary-empty">No ${type === 'weapon' ? 'weapons' : 'items'} recorded for this run.</div>`
+      }
+    </section>
+  `;
+}
+
+function formatCount(value) {
+  return toNonNegativeInt(value).toLocaleString('en-US');
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function normalizeDurationSeconds(value) {
