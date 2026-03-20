@@ -1,9 +1,7 @@
 import '../../css/pages/Stats.css';
-import { getUser, logout, authFetch } from '../auth.js';
+import { API_BASE, getUser, logout, authFetch } from '../auth.js';
 import { confirmLogout } from '../logout-confirm.js';
 import { ensureGlobalStarfield } from '../global-starfield.js';
-
-const API_BASE = 'http://5.38.140.128:5000';
 
 export default function Stats(container) {
   container.innerHTML = `

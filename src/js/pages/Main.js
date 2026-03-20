@@ -1,5 +1,5 @@
 import '../../css/pages/Main.css';
-import { getUser, logout, authFetch } from '../auth.js';
+import { API_BASE, getUser, logout, authFetch } from '../auth.js';
 import { confirmLogout } from '../logout-confirm.js';
 import { ensureGlobalStarfield } from '../global-starfield.js';
 import swordImg from '../../assets/weapons/sword.png';
@@ -21,7 +21,6 @@ import orbOfHealthImg from '../../assets/items/orb_of_health.png';
 import swiftshotCharmImg from '../../assets/items/swiftshot_charm.png';
 import volleyStoneImg from '../../assets/items/volley_stone.png';
 
-const API_BASE = 'http://5.38.140.128:5000';
 const WEAPON_IMAGE_BY_ID = {
   1: swordImg,
   2: pistolImg,
