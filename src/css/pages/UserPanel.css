@@ -768,14 +768,13 @@
       }
 
       .up-form-input {
-        padding: clamp(10px, 2vw, 14px) clamp(12px, 2.5vw, 16px);
-        background: linear-gradient(180deg, rgba(15,6,6,0.72) 0%, rgba(8,4,4,0.74) 100%);
-        border: 1px solid rgba(212,175,55,0.2);
-        border-bottom: 1.5px solid rgba(212,175,55,0.2);
-        color: rgba(255,255,255,0.85);
-        font-family: 'Montserrat', sans-serif;
-        font-size: 9px;
-        letter-spacing: 0.5px;
+          padding: 12px 14px;
+          background: linear-gradient(180deg, rgba(15,6,6,0.72) 0%, rgba(8,4,4,0.74) 100%);
+          border: 1px solid rgba(212,175,55,0.2);
+          border-bottom: 1.5px solid rgba(212,175,55,0.2);
+          color: rgba(255,255,255,0.85);
+          font-family: 'Montserrat', sans-serif;
+          font-size: 11px;
         border-radius: 1px;
         transition: all 0.3s;
         outline: none;
@@ -789,8 +788,7 @@
       }
 
       .up-form-error {
-        font-size: 7.5px;
-        color: rgba(192,57,43,0.8);
+          font-size: 9px;
         letter-spacing: 0.5px;
         display: none;
       }
@@ -997,62 +995,70 @@
         }
 
         .up-modal-overlay {
-          padding: 16px;
+          padding: 12px;
         }
 
         .up-modal-card {
           max-width: 100%;
           border-radius: 3px;
-          padding: 22px 16px;
+          padding: 40px 28px;
+        }
+
+        .up-modal-card .up-modal-title {
+          font-size: 20px;
+        }
+
+        .up-modal-card .up-modal-subtitle {
+          font-size: 10px;
         }
 
         .up-modal-header {
-          margin-bottom: 16px;
+          margin-bottom: 32px;
         }
 
         .up-modal-title {
-          font-size: 22px;
+          font-size: 28px;
           letter-spacing: 1.8px;
           margin-bottom: 6px;
         }
 
         .up-modal-subtitle {
-          font-size: 8.5px;
+          font-size: 12px;
           letter-spacing: 2px;
           line-height: 1.3;
         }
 
         .up-form {
-          gap: 14px;
+          gap: 22px;
         }
 
         .up-form-label {
-          font-size: 8.5px;
+          font-size: 12px;
           letter-spacing: 2px;
         }
 
         .up-form-input {
-          min-height: 42px;
-          padding: 11px 13px;
-          font-size: 12.5px;
+          min-height: 54px;
+          padding: 15px 18px;
+          font-size: 15px;
           letter-spacing: 0.3px;
           border-radius: 2px;
         }
 
         .up-form-error {
-          font-size: 9px;
+          font-size: 11px;
           line-height: 1.3;
           letter-spacing: 0.3px;
         }
 
         .up-form-actions {
-          margin-top: 14px;
-          gap: 10px;
+          margin-top: 24px;
+          gap: 16px;
         }
 
         .up-form-actions .up-settings-btn {
-          min-height: 44px;
-          font-size: 8.8px;
+          min-height: 52px;
+          font-size: 11px;
           letter-spacing: 1.6px;
         }
       }
