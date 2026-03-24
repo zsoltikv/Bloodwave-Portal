@@ -24,6 +24,7 @@ export default function Stats(container) {
           </div>
 
           <div class="st-right">
+            <a href="/main" data-link class="st-nav-link" id="stBackToDashboard" style="display:none;">Back to Dashboard</a>
             <div class="st-avatar-wrap">
               <button class="st-avatar" id="st-avatar-btn" aria-label="Profile menu" aria-expanded="false">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
@@ -100,6 +101,10 @@ export default function Stats(container) {
             </div>
             <h1 class="st-title">All&#8209;Time Stats</h1>
             <p class="st-subtitle">Lifetime&nbsp;&nbsp;performance&nbsp;&nbsp;overview</p>
+            <p class="st-viewing-user" id="st-viewing-user" style="display:none;">
+              <span class="st-viewing-kicker">Viewing</span>
+              <span class="st-viewing-name" id="st-viewing-name">-</span>
+            </p>
           </div>
 
           <!-- Stat cards -->
@@ -641,6 +646,7 @@ export default function Stats(container) {
   if (mobileUsername) mobileUsername.textContent = displayName;
   refreshNavbarUsername();
   reorderStatCards(container);
+  updateNavbarLinksForPlayer(container);
 
   loadAllTimeStats(container, user);
 
@@ -1079,6 +1085,17 @@ async function parseResponsePayload(response) {
 }
 
 function resolvePlayerId(user) {
+  // Check if a userId query parameter is provided
+  const queryParams = new URLSearchParams(window.location.search);
+  const userIdParam = queryParams.get('userId');
+  if (userIdParam) {
+    const value = Number(userIdParam);
+    if (Number.isInteger(value) && value > 0) {
+      return value;
+    }
+  }
+
+  // Fall back to current user's ID
   const candidates = [user?.id, user?.userId, user?.playerId];
   for (const candidate of candidates) {
     const value = Number(candidate);
@@ -1088,6 +1105,61 @@ function resolvePlayerId(user) {
   }
 
   return null;
+}
+
+function updateNavbarLinksForPlayer(container) {
+  const queryParams = new URLSearchParams(window.location.search);
+  const userIdParam = queryParams.get('userId');
+
+  if (!userIdParam) return;
+
+  // Back-only navbar in viewed-player mode.
+  const navLinks = container.querySelector('.st-links');
+  const backLink = container.querySelector('#stBackToDashboard');
+  const avatarWrap = container.querySelector('.st-avatar-wrap');
+  const hamburger = container.querySelector('#st-hamburger');
+  const mobileMenu = container.querySelector('#st-mobile-menu');
+  const root = container.querySelector('.st-root');
+
+  if (root) root.classList.add('st-view-mode');
+  if (navLinks) navLinks.style.display = 'none';
+  if (avatarWrap) avatarWrap.style.display = 'none';
+  if (hamburger) hamburger.style.display = 'none';
+  if (mobileMenu) mobileMenu.style.display = 'none';
+  if (backLink) {
+    backLink.style.display = 'inline-block';
+    backLink.setAttribute('href', '/main');
+  }
+
+  // Fetch and display viewed player's username
+  loadViewedPlayerUsername(userIdParam, container);
+}
+
+async function loadViewedPlayerUsername(userId, container) {
+  try {
+    const res = await authFetch(`${API_BASE}/api/User/name?id=${encodeURIComponent(userId)}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+    if (!res.ok) throw new Error('User not found');
+    
+    const data = await res.json();
+    const username = data?.username || `User #${userId}`;
+    
+    const viewingEl = container.querySelector('#st-viewing-user');
+    const viewingNameEl = container.querySelector('#st-viewing-name');
+    if (viewingEl && viewingNameEl) {
+      viewingNameEl.textContent = username;
+      viewingEl.style.display = 'inline-flex';
+    }
+  } catch {
+    const viewingEl = container.querySelector('#st-viewing-user');
+    const viewingNameEl = container.querySelector('#st-viewing-name');
+    if (viewingEl && viewingNameEl) {
+      viewingNameEl.textContent = `User #${userId}`;
+      viewingEl.style.display = 'inline-flex';
+    }
+  }
 }
 
 function normalizeDurationSeconds(value) {

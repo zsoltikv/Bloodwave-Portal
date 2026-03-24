@@ -328,6 +328,12 @@ export default function Leaderboard(container) {
           </div>
         `;
 
+        // Add click event to navigate to player's matches
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', () => {
+          window.router?.navigate(`/main?userId=${encodeURIComponent(entry.userId)}`);
+        });
+
         grid.appendChild(card);
         userIdToUsernameEl.set(entry.userId, card.querySelector('.lb-card-username'));
         userIdToCardEl.set(entry.userId, card);
