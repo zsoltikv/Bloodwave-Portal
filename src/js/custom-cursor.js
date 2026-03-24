@@ -1,10 +1,10 @@
 const INTERACTIVE_SELECTOR = 'a, button, [role="button"], input, textarea, select, summary, label, [data-link]';
-const TRAIL_LENGTH = 8;
+const TRAIL_LENGTH = 6;
 const MOBILE_UA_REGEX = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i;
-const CURSOR_LERP_MIN = 0.45;
-const CURSOR_LERP_MAX = 0.9;
-const CURSOR_DISTANCE_FOR_MAX_SPEED = 80;
-const CURSOR_CATCHUP_DISTANCE = 28;
+const CURSOR_LERP_MIN = 1;
+const CURSOR_LERP_MAX = 1;
+const CURSOR_DISTANCE_FOR_MAX_SPEED = 1;
+const CURSOR_CATCHUP_DISTANCE = 0.1;
 const FRAME_MS_BASELINE = 16.67;
 
 let cursorRoot = null;

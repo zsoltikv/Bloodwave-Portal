@@ -331,7 +331,6 @@ export default function Leaderboard(container) {
         `;
 
         // Add click event to navigate to player's matches
-        card.style.cursor = 'pointer';
         card.addEventListener('click', () => {
           window.router?.navigate(`/main?userId=${encodeURIComponent(entry.userId)}`);
         });
