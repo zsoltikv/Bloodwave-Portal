@@ -141,7 +141,7 @@
       }
 
       .st-link {
-        font-size: clamp(7px, 1vw, 9px);
+        font-size: clamp(8px, 1.1vw, 10px);
         font-weight: 400;
         letter-spacing: clamp(1.8px, 0.55vw, 3.2px);
         color: rgba(255,255,255,0.38);
