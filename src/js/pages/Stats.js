@@ -1,13 +1,17 @@
 import '../../css/pages/Stats.css';
-import { API_BASE, getUser, logout, authFetch } from '../auth.js';
-import { confirmLogout } from '../logout-confirm.js';
+import { API_BASE, getUser, authFetch } from '../auth.js';
 import { ensureGlobalStarfield } from '../global-starfield.js';
-import { Box, Button, Icon, Link, Main, Nav, Paragraph, Span, Strong, Title, page, setupGroup, setupState } from '../feather/index.js';
+import {
+  DashboardNavbar,
+  mountDashboardNavbar,
+  refreshDashboardNavbarUsername,
+  resolveDashboardDisplayName,
+} from '../components/DashboardNavbar.js';
+import { Box, Icon, Main, Paragraph, Span, Strong, Title, page, setupGroup, setupState, signal } from '../feather/index.js';
 
 const STROKE = 'rgba(192,57,43,0.8)';
 
 const ICONS = {
-  user: '<path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>',
   flame: '<path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" />',
   shield: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 3v6c0 5.25-3.438 8.813-7 10-3.563-1.188-7-4.75-7-10V6l7-3Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 10.5" />',
   eyeOff: '<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />',
@@ -17,9 +21,6 @@ const ICONS = {
   cross: '<path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5v14" />',
   coin: '<path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />',
   trend: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8" /><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18" />',
-  logout: '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />',
-  cloud: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33A3 3 0 0116.5 19.5H6.75z" />',
-  profile: '<path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15a7.488 7.488 0 0 0-5.982 3.725m11.964 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275m11.963 0A24.973 24.973 0 0 1 12 16.5a24.973 24.973 0 0 1-5.982 2.275" />',
 };
 
 const STATS_SECTIONS = [
@@ -37,61 +38,81 @@ function ornament() { return Box(Box().className('st-ornament-line'), Box().clas
 function statCard([stat, type, label, unit, iconKey]) { return Box(...cardCorners(), Box(Box(iconNode(ICONS[iconKey])).className('st-card-icon'), Box(label).className('st-card-name'), Box().className('st-card-sep'), Box(statValue(type)).className('st-card-value js-st-count').attr('data-stat', stat).attr('data-type', type).attr('data-target', '0'), Box(unit).className('st-card-unit')).className('st-card-body')).className('st-card'); }
 function statSection(section) { return Box(Box(Box(section.title).className('st-section-title'), Paragraph(section.subtitle).className('st-section-subtitle')).className('st-section-head'), Box(section.cards.map(statCard)).className('st-grid st-grid--section')).className('st-stat-section'); }
 
-function statsNav() {
-  return Nav(
-    Box(Link('Bloodwave').href('/main').dataLink().className('st-logo'), Box(Link(Span('Matches')).href('/main').dataLink().className('st-link'), Link(Span('Stats')).href('/stats').dataLink().className('st-link active'), Link(Span('Leaderboard')).href('/leaderboard').dataLink().className('st-link'), Link(Span('Achievements')).href('/achievements').dataLink().className('st-link')).className('st-links'), Box(Link('Back to Dashboard').href('/main').dataLink().className('st-nav-link').id('stBackToDashboard').style({ display: 'none' }), Box(Button(iconNode(ICONS.user, { fill: 'currentColor', stroke: 'none' })).className('st-avatar').id('st-avatar-btn').ariaLabel('Profile menu').attr('aria-expanded', 'false'), Box(Box(Box('-').className('st-dd-username').id('st-dd-username'), Box('Member').className('st-dd-role')).className('st-dd-header'), Link(iconNode(ICONS.profile, { stroke: 'currentColor', width: '1.5' }), 'Profile').href('/user-panel').dataLink().className('st-dd-item').attr('role', 'menuitem'), Link(iconNode(ICONS.cloud, { stroke: 'currentColor', width: '1.5' }), 'Installation').href('/android-download').dataLink().className('st-dd-item').attr('role', 'menuitem'), Box().className('st-dd-divider'), Button(iconNode(ICONS.logout, { stroke: 'currentColor', width: '1.5' }), 'Logout').className('st-dd-item logout').id('st-dd-logout').attr('role', 'menuitem')).className('st-avatar-dropdown').id('st-avatar-dropdown').attr('role', 'menu')).className('st-avatar-wrap'), Button(Span().className('st-bar'), Span().className('st-bar'), Span().className('st-bar')).className('st-hamburger').id('st-hamburger').ariaLabel('Toggle menu').attr('aria-expanded', 'false')).className('st-right')).className('st-nav-inner'),
-    Box(Box(Link('Matches').href('/main').dataLink().className('st-mobile-link'), Link('Stats').href('/stats').dataLink().className('st-mobile-link'), Link('Leaderboard').href('/leaderboard').dataLink().className('st-mobile-link'), Link('Achievements').href('/achievements').dataLink().className('st-mobile-link'), Box().className('st-mobile-divider'), Box(Span(iconNode(ICONS.user, { fill: 'currentColor', stroke: 'none' })).className('st-mobile-avatar'), Span('\u2014').id('st-mobile-username')).className('st-mobile-profile').style({ pointerEvents: 'none', cursor: 'default' }), Box().className('st-mobile-divider'), Link('Profile').href('/user-panel').dataLink().className('st-mobile-link'), Link('Installation').href('/android-download').dataLink().className('st-mobile-link'), Button(iconNode(ICONS.logout, { stroke: 'currentColor', width: '1.5' }), 'Logout').className('st-mobile-logout').id('st-mobile-logout')).className('st-mobile-menu-inner')).className('st-mobile-menu').id('st-mobile-menu'),
-  ).className('st-nav');
-}
-
 function visualAnalytics() {
   return Box(Box(Box().className('st-viz-line'), Box('Visual Analytics').className('st-viz-title'), Box().className('st-viz-line')).className('st-viz-head'), Box(Box(Box('Match Duration Split').className('st-viz-card-title'), Box(Span().className('st-ratio-segment short').id('st-ratio-short'), Span().className('st-ratio-segment normal').id('st-ratio-normal'), Span().className('st-ratio-segment long').id('st-ratio-long')).className('st-ratio-track').id('st-ratio-track').attr('role', 'img').ariaLabel('Short, normal and long match ratio'), Box(Box(Span().className('dot short'), Span('Short (<2m)'), Strong('0%').id('st-ratio-short-label')).className('st-ratio-item'), Box(Span().className('dot normal'), Span('Normal'), Strong('0%').id('st-ratio-normal-label')).className('st-ratio-item'), Box(Span().className('dot long'), Span('Long (>10m)'), Strong('0%').id('st-ratio-long-label')).className('st-ratio-item')).className('st-ratio-legend')).className('st-viz-card st-viz-card--ratio'), Box(Box('Per Match Performance').className('st-viz-card-title'), Box(Box(Span('Damage').className('st-bar-label'), Box(Span().className('st-bar-fill damage').id('st-bar-damage')).className('st-bar-track'), Span('0').className('st-bar-value').id('st-bar-damage-value')).className('st-bar-row'), Box(Span('Kills').className('st-bar-label'), Box(Span().className('st-bar-fill kills').id('st-bar-kills')).className('st-bar-track'), Span('0').className('st-bar-value').id('st-bar-kills-value')).className('st-bar-row'), Box(Span('Coins').className('st-bar-label'), Box(Span().className('st-bar-fill coins').id('st-bar-coins')).className('st-bar-track'), Span('0').className('st-bar-value').id('st-bar-coins-value')).className('st-bar-row')).className('st-bars').id('st-bars')).className('st-viz-card st-viz-card--bars'), Box(Box('Stability Gauge').className('st-viz-card-title'), Box(Box(Box('0').className('st-gauge-value').id('st-gauge-value'), Box('volatility %').className('st-gauge-unit')).className('st-gauge-inner')).className('st-gauge').id('st-gauge').attr('role', 'img').ariaLabel('Performance stability gauge'), Paragraph('Very stable').className('st-gauge-note').id('st-gauge-note')).className('st-viz-card st-viz-card--gauge'), Box(Box('Last 10 Matches Timeline').className('st-viz-card-title'), Box(Box().className('st-timeline-gridlines'), Box().className('st-timeline-line').id('st-timeline-line'), Box().className('st-timeline-points').id('st-timeline-points').attr('role', 'img').ariaLabel('Last ten matches timeline with hover details')).className('st-timeline-wrap'), Box(Span('older'), Strong('match flow'), Span('newer')).className('st-timeline-foot')).className('st-viz-card st-viz-card--timeline')).className('st-viz-grid')).className('st-viz').attr('aria-label', 'Visual analytics');
 }
 
-function createStatsView() {
-  return Box(Box().className('st-glow'), statsNav(), Main(Box(Box(ornament(), Title('All\u2011Time Stats').className('st-title'), Paragraph('Lifetime\u00A0\u00A0performance\u00A0\u00A0overview').className('st-subtitle'), Paragraph(Span('Viewing').className('st-viewing-kicker'), Span('-').className('st-viewing-name').id('st-viewing-name')).className('st-viewing-user').id('st-viewing-user').style({ display: 'none' })).className('st-header'), Box(STATS_SECTIONS.map(statSection)).className('st-sections'), visualAnalytics()).className('st-inner')).className('st-content')).className('st-root');
+function createStatsView(ctx) {
+  const viewedPlayerId = resolveViewedPlayerIdFromQuery();
+  const isViewingPlayer = viewedPlayerId !== null;
+
+  return Box(
+    Box().className('st-glow'),
+    DashboardNavbar({
+      variant: 'stats',
+      active: 'stats',
+      username: ctx.user.displayName,
+      viewMode: isViewingPlayer,
+    }),
+    Main(
+      Box(
+        Box(
+          ornament(),
+          Title('All\u2011Time Stats').className('st-title'),
+          Paragraph('Lifetime\u00A0\u00A0performance\u00A0\u00A0overview').className('st-subtitle'),
+          Paragraph(
+            Span('Viewing').className('st-viewing-kicker'),
+            Span(isViewingPlayer ? `User #${viewedPlayerId}` : '-').className('st-viewing-name').id('st-viewing-name'),
+          ).className('st-viewing-user').id('st-viewing-user').style({ display: isViewingPlayer ? 'inline-flex' : 'none' }),
+        ).className('st-header'),
+        Box(STATS_SECTIONS.map(statSection)).className('st-sections'),
+        visualAnalytics(),
+      ).className('st-inner'),
+    ).className('st-content'),
+  ).className(isViewingPlayer ? 'st-root st-view-mode' : 'st-root');
 }
 
 const Stats = page({
   name: 'Stats',
-  setup() { ensureGlobalStarfield(); return setupState(setupGroup('user', { current: getUser() })); },
-  render() { return createStatsView(); },
+  setup() {
+    ensureGlobalStarfield();
+    const user = getUser();
+    return setupState(
+      setupGroup('user', {
+        current: user,
+        displayName: signal(resolveDashboardDisplayName(user)),
+      }),
+    );
+  },
+  render(ctx) { return createStatsView(ctx); },
   mount(ctx) {
-    const { container } = ctx, user = ctx.user.current, displayName = user?.username ?? user?.email ?? 'Member', ddUsername = container.querySelector('#st-dd-username'), mobileUsername = container.querySelector('#st-mobile-username');
-    if (ddUsername) ddUsername.textContent = displayName; if (mobileUsername) mobileUsername.textContent = displayName;
-    refreshNavbarUsername(); updateNavbarLinksForPlayer(container); loadAllTimeStats(container, user);
-    async function refreshNavbarUsername() { try { const res = await authFetch(`${API_BASE}/api/User/me`, { method: 'GET', headers: { Accept: 'application/json' } }); if (!res.ok) return; const userData = await res.json(); const liveDisplayName = userData?.username ?? userData?.email ?? displayName; if (ddUsername) ddUsername.textContent = liveDisplayName; if (mobileUsername) mobileUsername.textContent = liveDisplayName; } catch {} }
-    const hamburger = container.querySelector('#st-hamburger'), mobileMenu = container.querySelector('#st-mobile-menu'); let menuOpen = false;
-    hamburger?.addEventListener('click', () => { if (!mobileMenu) return; menuOpen = !menuOpen; hamburger.classList.toggle('open', menuOpen); hamburger.setAttribute('aria-expanded', String(menuOpen)); mobileMenu.style.maxHeight = menuOpen ? `${mobileMenu.scrollHeight}px` : '0'; });
-    mobileMenu?.querySelectorAll('.st-mobile-link').forEach((link) => link.addEventListener('click', () => { menuOpen = false; hamburger?.classList.remove('open'); hamburger?.setAttribute('aria-expanded', 'false'); if (mobileMenu) mobileMenu.style.maxHeight = '0'; }));
-    const avatarBtn = container.querySelector('#st-avatar-btn'), avatarDrop = container.querySelector('#st-avatar-dropdown'); let dropOpen = false;
-    const openDrop = () => { if (!avatarDrop || !avatarBtn) return; dropOpen = true; avatarDrop.classList.add('open'); avatarBtn.setAttribute('aria-expanded', 'true'); }, closeDrop = () => { if (!avatarDrop || !avatarBtn) return; dropOpen = false; avatarDrop.classList.remove('open'); avatarBtn.setAttribute('aria-expanded', 'false'); };
-    avatarBtn?.addEventListener('click', (event) => { event.stopPropagation(); dropOpen ? closeDrop() : openDrop(); });
-    const handleDocumentClick = (event) => { if (dropOpen && avatarDrop && avatarBtn && !avatarDrop.contains(event.target) && event.target !== avatarBtn) closeDrop(); }, handleDocumentKeydown = (event) => { if (event.key === 'Escape' && dropOpen) closeDrop(); };
-    document.addEventListener('click', handleDocumentClick); document.addEventListener('keydown', handleDocumentKeydown); ctx.cleanup(() => document.removeEventListener('click', handleDocumentClick), 'lifetime'); ctx.cleanup(() => document.removeEventListener('keydown', handleDocumentKeydown), 'lifetime');
-    const doLogout = async () => { const confirmed = await confirmLogout(); if (confirmed) await logout(); };
-    container.querySelector('#st-dd-logout')?.addEventListener('click', doLogout); container.querySelector('#st-mobile-logout')?.addEventListener('click', doLogout);
+    const { container } = ctx;
+    const user = ctx.user.current;
+    mountDashboardNavbar(ctx, { variant: 'stats' });
+    void refreshDashboardNavbarUsername(ctx, ctx.user.displayName, 'stats.navbar-username');
+    loadViewedPlayerHeader(container, ctx);
+    void Promise.resolve(ctx.once('stats.all-time', () => fetchAllTimeStats(user))).then((stats) => {
+      applyStatsToCards(container, stats);
+      renderStatsVisuals(container, stats);
+      animateStStats(container);
+    });
   },
 });
 
 export default Stats;
 
-async function loadAllTimeStats(container, user) {
+async function fetchAllTimeStats(user) {
   const playerId = resolvePlayerId(user);
   const fallbackStats = { damageDealt: 0, damageTaken: 0, enemiesKilled: 0, totalMinutesLived: 0, matchesPlayed: 0, coinsCollected: 0, totalLevelsReached: 0, averageDamagePerMatch: 0, averageKillsPerMatch: 0, averageCoinsPerMatch: 0, averageKillsPerMinute: 0, averageDamagePerMinute: 0, averageSurvivalSecondsPerMatch: 0, bestMatchDamage: 0, bestMatchKills: 0, bestMatchSurvivalSeconds: 0, highestLevelReached: 0, bestMatchCoins: 0, bestMatchScore: 0, shortMatchRatioPercent: 0, longMatchRatioPercent: 0, performanceVolatilityPercent: 0, recentTimelineMatches: [] };
-  if (!playerId) { applyStatsToCards(container, fallbackStats); renderStatsVisuals(container, fallbackStats); animateStStats(container); return; }
+  if (!playerId) return fallbackStats;
   try {
     const response = await authFetch(`${API_BASE}/api/Match/player?playerId=${encodeURIComponent(playerId)}`, { method: 'GET', headers: { Accept: 'application/json' } });
     if (!response.ok) throw new Error('Failed to fetch player matches');
     const apiMatches = await parseResponsePayload(response);
-    const stats = aggregateMatchStats(apiMatches);
-    applyStatsToCards(container, stats);
-    renderStatsVisuals(container, stats);
+    return aggregateMatchStats(apiMatches);
   } catch {
-    applyStatsToCards(container, fallbackStats);
-    renderStatsVisuals(container, fallbackStats);
+    return fallbackStats;
   }
-  animateStStats(container);
 }
 
 function applyStatsToCards(container, stats) {
@@ -125,28 +146,30 @@ function formatDurationLabel(totalSeconds) { const seconds = toNonNegativeInt(to
 function calculateCoefficientOfVariationPercent(values) { if (!Array.isArray(values) || values.length < 2) return 0; const normalized = values.map(Number).filter((value) => Number.isFinite(value) && value >= 0); if (normalized.length < 2) return 0; const mean = normalized.reduce((sum, value) => sum + value, 0) / normalized.length; if (mean <= 0) return 0; const variance = normalized.map((value) => Math.pow(value - mean, 2)).reduce((sum, value) => sum + value, 0) / normalized.length; return safeDivide(Math.sqrt(variance) * 100, mean); }
 function safeDivide(numerator, denominator) { const left = Number(numerator), right = Number(denominator); return !Number.isFinite(left) || !Number.isFinite(right) || right <= 0 ? 0 : left / right; }
 async function parseResponsePayload(response) { const raw = await response.text(); if (!raw) return []; try { const parsed = JSON.parse(raw); return Array.isArray(parsed) ? parsed : []; } catch { return []; } }
-function resolvePlayerId(user) { const userIdParam = new URLSearchParams(window.location.search).get('userId'); if (userIdParam) { const value = Number(userIdParam); if (Number.isInteger(value) && value > 0) return value; } for (const candidate of [user?.id, user?.userId, user?.playerId]) { const value = Number(candidate); if (Number.isInteger(value) && value > 0) return value; } return null; }
+function resolveViewedPlayerIdFromQuery() { const userIdParam = new URLSearchParams(window.location.search).get('userId'); if (!userIdParam) return null; const value = Number(userIdParam); return Number.isInteger(value) && value > 0 ? value : null; }
+function resolvePlayerId(user) { const viewedPlayerId = resolveViewedPlayerIdFromQuery(); if (viewedPlayerId !== null) return viewedPlayerId; for (const candidate of [user?.id, user?.userId, user?.playerId]) { const value = Number(candidate); if (Number.isInteger(value) && value > 0) return value; } return null; }
 
-function updateNavbarLinksForPlayer(container) {
-  const userIdParam = new URLSearchParams(window.location.search).get('userId');
-  if (!userIdParam) return;
-  const navLinks = container.querySelector('.st-links'), backLink = container.querySelector('#stBackToDashboard'), avatarWrap = container.querySelector('.st-avatar-wrap'), hamburger = container.querySelector('#st-hamburger'), mobileMenu = container.querySelector('#st-mobile-menu'), root = container.querySelector('.st-root');
-  if (root) root.classList.add('st-view-mode'); if (navLinks) navLinks.style.display = 'none'; if (avatarWrap) avatarWrap.style.display = 'none'; if (hamburger) hamburger.style.display = 'none'; if (mobileMenu) mobileMenu.style.display = 'none';
-  if (backLink) { backLink.style.display = 'inline-block'; backLink.setAttribute('href', '/main'); }
-  loadViewedPlayerUsername(userIdParam, container);
+function loadViewedPlayerHeader(container, ctx) {
+  const viewedPlayerId = resolveViewedPlayerIdFromQuery();
+  if (viewedPlayerId === null) return;
+  void Promise.resolve(ctx.once(`stats.viewed-player.${viewedPlayerId}`, () => fetchViewedPlayerUsername(viewedPlayerId))).then((username) => {
+    applyViewedPlayerUsername(container, viewedPlayerId, username);
+  });
 }
 
-async function loadViewedPlayerUsername(userId, container) {
+async function fetchViewedPlayerUsername(userId) {
   try {
     const res = await authFetch(`${API_BASE}/api/User/name?id=${encodeURIComponent(userId)}`, { method: 'GET', headers: { Accept: 'application/json' } });
     if (!res.ok) throw new Error('User not found');
-    const username = (await res.json())?.username || `User #${userId}`;
-    const viewingEl = container.querySelector('#st-viewing-user'), viewingNameEl = container.querySelector('#st-viewing-name');
-    if (viewingEl && viewingNameEl) { viewingNameEl.textContent = username; viewingEl.style.display = 'inline-flex'; }
+    return (await res.json())?.username || `User #${userId}`;
   } catch {
-    const viewingEl = container.querySelector('#st-viewing-user'), viewingNameEl = container.querySelector('#st-viewing-name');
-    if (viewingEl && viewingNameEl) { viewingNameEl.textContent = `User #${userId}`; viewingEl.style.display = 'inline-flex'; }
+    return `User #${userId}`;
   }
+}
+
+function applyViewedPlayerUsername(container, userId, username) {
+  const viewingEl = container.querySelector('#st-viewing-user'), viewingNameEl = container.querySelector('#st-viewing-name');
+  if (viewingEl && viewingNameEl) { viewingNameEl.textContent = username || `User #${userId}`; viewingEl.style.display = 'inline-flex'; }
 }
 
 function normalizeDurationSeconds(value) { const parsed = Number(value); if (!Number.isFinite(parsed)) return 0; const nonNegative = Math.max(0, parsed); return nonNegative >= 10_000 ? Math.round(nonNegative / 1000) : Math.round(nonNegative); }

@@ -1,74 +1,13 @@
 import '../../css/pages/Leaderboard.css';
-import { API_BASE, getUser, logout, authFetch } from '../auth.js';
-import { confirmLogout } from '../logout-confirm.js';
+import { API_BASE, getUser, authFetch } from '../auth.js';
 import { ensureGlobalStarfield } from '../global-starfield.js';
-import { Box, Button, Icon, Link, Main, Nav, Paragraph, Span, Title, page, setupGroup, setupState, signal } from '../feather/index.js';
-
-const ICONS = {
-  user: '<path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>',
-  profile: '<path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15a7.488 7.488 0 0 0-5.982 3.725m11.964 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275m11.963 0A24.973 24.973 0 0 1 12 16.5a24.973 24.973 0 0 1-5.982 2.275" />',
-  cloud: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33A3 3 0 0116.5 19.5H6.75z" />',
-  logout: '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />',
-};
-
-const svgIcon = (markup, fill = 'none', stroke = 'currentColor', width = '1.5') => Icon().attrs({
-  xmlns: 'http://www.w3.org/2000/svg',
-  fill,
-  viewBox: '0 0 24 24',
-  stroke,
-  'stroke-width': width,
-}).html(markup);
-
-function leaderboardNav() {
-  return Nav(
-    Box(
-      Link('Bloodwave').href('/').dataLink().className('lb-logo'),
-      Box(
-        Link(Span('Matches')).href('/main').dataLink().className('lb-link'),
-        Link(Span('Stats')).href('/stats').dataLink().className('lb-link'),
-        Link(Span('Leaderboard')).href('/leaderboard').dataLink().className('lb-link active'),
-        Link(Span('Achievements')).href('/achievements').dataLink().className('lb-link'),
-      ).className('lb-links'),
-      Box(
-        Box(
-          Button(svgIcon(ICONS.user, 'currentColor', 'none')).className('lb-avatar').id('lb-avatar-btn').ariaLabel('Profile menu').attr('aria-expanded', 'false'),
-          Box(
-            Box(
-              Box('\u2014').className('lb-dd-username').id('lb-dd-username'),
-              Box('Member').className('lb-dd-role'),
-            ).className('lb-dd-header'),
-            Link(svgIcon(ICONS.profile), 'Profile').href('/user-panel').dataLink().className('lb-dd-item').attr('role', 'menuitem'),
-            Link(svgIcon(ICONS.cloud), 'Installation').href('/android-download').dataLink().className('lb-dd-item').attr('role', 'menuitem'),
-            Box().className('lb-dd-divider'),
-            Button(svgIcon(ICONS.logout), 'Logout').className('lb-dd-item logout').id('lb-dd-logout').attr('role', 'menuitem'),
-          ).className('lb-avatar-dropdown').id('lb-avatar-dropdown').attr('role', 'menu'),
-        ).className('lb-avatar-wrap'),
-        Button(
-          Span().className('lb-bar'),
-          Span().className('lb-bar'),
-          Span().className('lb-bar'),
-        ).className('lb-hamburger').id('lb-hamburger').ariaLabel('Toggle menu').attr('aria-expanded', 'false'),
-      ).className('lb-right'),
-    ).className('lb-nav-inner'),
-    Box(
-      Box(
-        Link('Matches').href('/main').dataLink().className('lb-mobile-link'),
-        Link('Stats').href('/stats').dataLink().className('lb-mobile-link'),
-        Link('Leaderboard').href('/leaderboard').dataLink().className('lb-mobile-link'),
-        Link('Achievements').href('/achievements').dataLink().className('lb-mobile-link'),
-        Box().className('lb-mobile-divider'),
-        Box(
-          Span(svgIcon(ICONS.user, 'currentColor', 'none')).className('lb-mobile-avatar'),
-          Span('\u2014').id('lb-mobile-username'),
-        ).className('lb-mobile-profile').style({ pointerEvents: 'none', cursor: 'default' }),
-        Box().className('lb-mobile-divider'),
-        Link('Profile').href('/user-panel').dataLink().className('lb-mobile-link'),
-        Link('Installation').href('/android-download').dataLink().className('lb-mobile-link'),
-        Button(svgIcon(ICONS.logout), 'Logout').className('lb-mobile-logout').id('lb-mobile-logout'),
-      ).className('lb-mobile-menu-inner'),
-    ).className('lb-mobile-menu').id('lb-mobile-menu'),
-  ).className('lb-nav');
-}
+import {
+  DashboardNavbar,
+  mountDashboardNavbar,
+  refreshDashboardNavbarUsername,
+  resolveDashboardDisplayName,
+} from '../components/DashboardNavbar.js';
+import { Box, Button, Main, Paragraph, Span, Title, page, setupGroup, setupState, signal } from '../feather/index.js';
 
 function ornament() {
   return Box(
@@ -138,7 +77,11 @@ function leaderboardGrid(board) {
 function createLeaderboardView(ctx) {
   return Box(
     Box().className('lb-glow'),
-    leaderboardNav(),
+    DashboardNavbar({
+      variant: 'leaderboard',
+      active: 'leaderboard',
+      username: ctx.user.displayName,
+    }),
     Main(
       Box(
         Box(
@@ -147,7 +90,7 @@ function createLeaderboardView(ctx) {
           Paragraph('Worldwide\u00A0\u00A0rankings').className('lb-subtitle'),
         ).className('lb-header'),
         Box(
-          leaderboardGrid(ctx.board),
+          () => leaderboardGrid(ctx.board),
         ).className('lb-grid').id('lb-grid'),
       ).className('lb-inner'),
     ).className('lb-content'),
@@ -159,9 +102,11 @@ const Leaderboard = page({
 
   setup() {
     ensureGlobalStarfield();
+    const user = getUser();
     return setupState(
       setupGroup('user', {
-        current: getUser(),
+        current: user,
+        displayName: signal(resolveDashboardDisplayName(user, '-')),
       }),
       setupGroup('board', {
         status: signal('loading'),
@@ -176,94 +121,13 @@ const Leaderboard = page({
   },
 
   mount(ctx) {
-    const { container } = ctx;
     const user = ctx.user.current;
-    const ddUsernameEl = container.querySelector('#lb-dd-username');
-    const mobileUsernameEl = container.querySelector('#lb-mobile-username');
-
-    if (ddUsernameEl) ddUsernameEl.textContent = user?.username || '\u2014';
-    if (mobileUsernameEl) mobileUsernameEl.textContent = user?.username || '\u2014';
-
-    const hamburger = container.querySelector('#lb-hamburger');
-    const mobileMenu = container.querySelector('#lb-mobile-menu');
-    let mobileMenuOpen = false;
-
-    const handleHamburgerClick = () => {
-      if (!mobileMenu) return;
-      mobileMenuOpen = !mobileMenuOpen;
-      hamburger.classList.toggle('open', mobileMenuOpen);
-      hamburger.setAttribute('aria-expanded', String(mobileMenuOpen));
-      mobileMenu.style.maxHeight = mobileMenuOpen ? `${mobileMenu.scrollHeight}px` : '0';
-    };
-    hamburger?.addEventListener('click', handleHamburgerClick);
-    ctx.cleanup(() => hamburger?.removeEventListener('click', handleHamburgerClick));
-
-    mobileMenu?.querySelectorAll('.lb-mobile-link').forEach((link) => {
-      const handleMobileLinkClick = () => {
-        mobileMenuOpen = false;
-        hamburger?.classList.remove('open');
-        hamburger?.setAttribute('aria-expanded', 'false');
-        if (mobileMenu) mobileMenu.style.maxHeight = '0';
-      };
-      link.addEventListener('click', handleMobileLinkClick);
-      ctx.cleanup(() => link.removeEventListener('click', handleMobileLinkClick));
-    });
-
-    const avatarBtn = container.querySelector('#lb-avatar-btn');
-    const avatarDropdown = container.querySelector('#lb-avatar-dropdown');
-    const handleAvatarClick = () => {
-      avatarDropdown?.classList.toggle('open');
-      avatarBtn.setAttribute('aria-expanded', String(avatarDropdown?.classList.contains('open')));
-    };
-    avatarBtn?.addEventListener('click', handleAvatarClick);
-    ctx.cleanup(() => avatarBtn?.removeEventListener('click', handleAvatarClick));
-
-    const handleDocumentClick = (event) => {
-      const clickTarget = event.target instanceof Element ? event.target : null;
-      if (!clickTarget?.closest('.lb-avatar-wrap')) {
-        avatarDropdown?.classList.remove('open');
-        avatarBtn?.setAttribute('aria-expanded', 'false');
-      }
-    };
-    document.addEventListener('click', handleDocumentClick);
-    ctx.cleanup(() => document.removeEventListener('click', handleDocumentClick));
-
-    const doLogout = async () => {
-      const confirmed = await confirmLogout();
-      if (!confirmed) return;
-      await logout();
-      if (window.router?.navigate) {
-        window.router.navigate('/login');
-        return;
-      }
-      window.location.href = '/login';
-    };
-
-    const desktopLogout = container.querySelector('#lb-dd-logout');
-    const mobileLogout = container.querySelector('#lb-mobile-logout');
-    desktopLogout?.addEventListener('click', doLogout);
-    mobileLogout?.addEventListener('click', doLogout);
-    ctx.cleanup(() => desktopLogout?.removeEventListener('click', doLogout));
-    ctx.cleanup(() => mobileLogout?.removeEventListener('click', doLogout));
+    mountDashboardNavbar(ctx, { variant: 'leaderboard' });
 
     void ctx.once('leaderboard.boot', async () => {
-      void refreshNavbarUsername();
+      void refreshDashboardNavbarUsername(ctx, ctx.user.displayName, 'leaderboard.navbar-username', '-');
       void loadLeaderboard();
     });
-
-    async function refreshNavbarUsername() {
-      try {
-        const res = await authFetch(`${API_BASE}/api/User/me`, {
-          method: 'GET',
-          headers: { Accept: 'application/json' },
-        });
-        if (!res.ok) return;
-        const userData = await res.json();
-        const liveDisplayName = userData?.username ?? userData?.email ?? user?.username ?? '\u2014';
-        if (ddUsernameEl) ddUsernameEl.textContent = liveDisplayName;
-        if (mobileUsernameEl) mobileUsernameEl.textContent = liveDisplayName;
-      } catch {}
-    }
 
     async function loadLeaderboard() {
       ctx.board.status.set('loading');

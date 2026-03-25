@@ -335,10 +335,10 @@ const UserPanel = page({
           throw new Error(`Failed to load profile (${res.status})`);
         }
 
-        const userData = await res.json();
-        applyUserToUi(userData);
+        return await res.json();
       } catch (err) {
         console.error('Failed to fetch current user profile:', err);
+        return null;
       }
     }
 
@@ -636,7 +636,9 @@ const UserPanel = page({
       window.location.href = '/main';
     });
 
-    fetchCurrentUser();
+    void Promise.resolve(ctx.once('user-panel.current-user', fetchCurrentUser)).then((userData) => {
+      applyUserToUi(userData);
+    });
   },
 });
 

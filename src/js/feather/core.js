@@ -2,7 +2,6 @@ import { beginReactiveCreationPhase, effect, endReactiveCreationPhase, isReactiv
 import { cx, token } from './theme.js';
 
 const FRAGMENT = Symbol('feather.fragment');
-const DYNAMIC = Symbol('feather.dynamic');
 const FEATHER_RUNTIME_STYLE_ID = 'feather-runtime-styles';
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 const SVG_TAGS = new Set([
@@ -67,10 +66,6 @@ function isPlainObject(value) {
 
 function isViewNode(value) {
   return Boolean(value) && typeof value === 'object' && value.__feather === true;
-}
-
-function isDynamicNode(value) {
-  return Boolean(value) && typeof value === 'object' && value.__featherDynamic === true;
 }
 
 function isFormObject(value) {
@@ -890,23 +885,44 @@ function clearBetween(start, end) {
   }
 }
 
+function createRegionContext(parentContext) {
+  const regionContext = createRenderContext({
+    container: parentContext?.container,
+    route: parentContext?.route,
+    router: parentContext?.router,
+    scope: parentContext || {},
+  });
+
+  if (parentContext?.once) {
+    regionContext.once = parentContext.once;
+  }
+
+  return regionContext;
+}
+
 function createReactiveRegion(getter, context) {
   const fragment = document.createDocumentFragment();
   const start = document.createComment('feather-reactive-start');
   const end = document.createComment('feather-reactive-end');
+  const regionContext = createRegionContext(context);
+  let active = true;
 
   fragment.appendChild(start);
 
-  const initialValue = untrack(() => getter());
-  const initialNode = createDomNode(initialValue, context);
+  const initialNode = untrack(() => createDomNode(getter(), regionContext));
   if (initialNode) {
     fragment.appendChild(initialNode);
   }
 
   fragment.appendChild(end);
 
+  context?.cleanup?.(() => {
+    active = false;
+    regionContext.destroy();
+  });
+
   queueMicrotask(() => {
-    if (!context?.cleanup) {
+    if (!context?.cleanup || !active) {
       return;
     }
 
@@ -916,14 +932,15 @@ function createReactiveRegion(getter, context) {
         return;
       }
 
+      regionContext.prepareRender();
       clearBetween(start, end);
-      const nextNode = createDomNode(getter(), context);
+      const nextNode = createDomNode(getter(), regionContext);
       if (nextNode) {
         parent.insertBefore(nextNode, end);
       }
     });
 
-    context.cleanup(stop);
+    regionContext.cleanup(stop, 'lifetime');
   });
 
   return fragment;
@@ -931,10 +948,6 @@ function createReactiveRegion(getter, context) {
 
 function createReactiveChildNode(binding, context) {
   return createReactiveRegion(() => binding.get(), context);
-}
-
-function createDynamicNode(node, context) {
-  return createReactiveRegion(() => node.getter(), context);
 }
 
 function applyStyles(element, styles) {
@@ -1230,8 +1243,8 @@ export function createDomNode(value, context) {
     return createReactiveChildNode(value, context);
   }
 
-  if (isDynamicNode(value)) {
-    return createDynamicNode(value, context);
+  if (typeof value === 'function') {
+    return createReactiveRegion(value, context);
   }
 
   if (isDomNode(value)) {
@@ -1275,13 +1288,12 @@ export function render(output, container, options = {}) {
   });
 
   const resolveOutput = typeof output === 'function' ? output : () => output;
-
-  const stop = effect(() => {
+  const performRender = () => {
     context.prepareRender();
     let nextView;
     beginReactiveCreationPhase('render()');
     try {
-      nextView = resolveOutput(context);
+      nextView = untrack(() => resolveOutput(context));
     } finally {
       endReactiveCreationPhase();
     }
@@ -1294,12 +1306,13 @@ export function render(output, container, options = {}) {
     if (typeof options.afterRender === 'function') {
       untrack(() => options.afterRender(context));
     }
-  });
+  };
 
-  context.cleanup(stop, 'lifetime');
+  performRender();
 
   return {
     context,
+    render: performRender,
     destroy() {
       context.destroy();
     },
@@ -1371,11 +1384,7 @@ export function dynamic(getter) {
     throw new Error('Feather: dynamic(getter) requires a function.');
   }
 
-  return {
-    __featherDynamic: true,
-    nodeType: DYNAMIC,
-    getter,
-  };
+  return getter;
 }
 
 export function createRenderContext({ container, route, router, scope = {} }) {
@@ -2038,11 +2047,11 @@ export const Link = createPrimitive('a', {
 
 export function ForEach(items, renderItem) {
   if (containsReactive(items)) {
-    return dynamic(() => {
+    return () => {
       const resolvedItems = read(items);
       if (!Array.isArray(resolvedItems)) return [];
       return resolvedItems.map((item, index) => renderItem(item, index));
-    });
+    };
   }
 
   const resolvedItems = read(items);
@@ -2052,7 +2061,7 @@ export function ForEach(items, renderItem) {
 
 export function Show(condition, truthyValue, falsyValue = null) {
   if (containsReactive(condition)) {
-    return dynamic(() => (read(condition) ? truthyValue : falsyValue));
+    return () => (read(condition) ? truthyValue : falsyValue);
   }
 
   return read(condition) ? truthyValue : falsyValue;

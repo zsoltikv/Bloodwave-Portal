@@ -19,6 +19,7 @@ import {
   signal,
   setupGroup,
   setupState,
+  Break,
 } from '../feather/index.js';
 
 const SUCCESS_ICON = `
@@ -156,6 +157,13 @@ const ForgotPassword = page({
       formHidden: signal(false),
       successVisible: signal(false),
     };
+    const transitionStyle = {
+      display: computed(() => (transition.formHidden.get() ? 'none' : 'block')),
+      opacity: computed(() => (transition.formLeaving.get() ? '0' : '1')),
+      pointerEvents: computed(() => (transition.formLeaving.get() ? 'none' : 'auto')),
+      transform: computed(() => (transition.formLeaving.get() ? 'translateY(-8px)' : 'translateY(0)')),
+      transition: computed(() => (transition.formLeaving.get() ? 'opacity 0.35s ease, transform 0.35s ease' : 'none')),
+    };
 
     const form = createForm({
       initial: {
@@ -189,7 +197,10 @@ const ForgotPassword = page({
         email: emailField,
       }),
       setupGroup('submit', submit),
-      setupGroup('transition', transition),
+      setupGroup('transition', {
+        ...transition,
+        style: transitionStyle,
+      }),
     );
   },
 
@@ -217,7 +228,7 @@ const ForgotPassword = page({
           Box(
             Paragraph(
               'Enter your email address and we will send',
-              Box().tag('br'),
+              Break(),
               'you a link to reset your password.',
             ).className('bw-desc'),
             Form(
@@ -250,11 +261,11 @@ const ForgotPassword = page({
             )
               .form(ctx.form)
               .id('fpForm')
-              .bindStyle('display', computed(() => (ctx.transition.formHidden.get() ? 'none' : 'block')))
-              .bindStyle('opacity', computed(() => (ctx.transition.formLeaving.get() ? '0' : '1')))
-              .bindStyle('pointerEvents', computed(() => (ctx.transition.formLeaving.get() ? 'none' : 'auto')))
-              .bindStyle('transform', computed(() => (ctx.transition.formLeaving.get() ? 'translateY(-8px)' : 'translateY(0)')))
-              .bindStyle('transition', computed(() => (ctx.transition.formLeaving.get() ? 'opacity 0.35s ease, transform 0.35s ease' : 'none'))),
+              .bindStyle('display', ctx.transition.style.display)
+              .bindStyle('opacity', ctx.transition.style.opacity)
+              .bindStyle('pointerEvents', ctx.transition.style.pointerEvents)
+              .bindStyle('transform', ctx.transition.style.transform)
+              .bindStyle('transition', ctx.transition.style.transition),
             Box(
               Box(
                 Icon()

@@ -1,8 +1,13 @@
 import '../../css/pages/Main.css';
 import '../../css/pages/Stats.css';
-import { API_BASE, getUser, logout, authFetch } from '../auth.js';
-import { confirmLogout } from '../logout-confirm.js';
+import { API_BASE, getUser, authFetch } from '../auth.js';
 import { ensureGlobalStarfield } from '../global-starfield.js';
+import {
+  DashboardNavbar,
+  mountDashboardNavbar,
+  refreshDashboardNavbarUsername,
+  resolveDashboardDisplayName,
+} from '../components/DashboardNavbar.js';
 import swordImg from '../../assets/weapons/sword.png';
 import pistolImg from '../../assets/weapons/pistol.png';
 import shotgunImg from '../../assets/weapons/shotgun.png';
@@ -21,7 +26,7 @@ import oathbladeImg from '../../assets/items/oathblade.png';
 import orbOfHealthImg from '../../assets/items/orb_of_health.png';
 import swiftshotCharmImg from '../../assets/items/swiftshot_charm.png';
 import volleyStoneImg from '../../assets/items/volley_stone.png';
-import { Box, Button, El, Icon, Img, Link, Main as MainContent, Nav, Paragraph, Span, Title, page, setupGroup, setupState, signal } from '../feather/index.js';
+import { Box, Button, El, Icon, Img, Link, Main as MainContent, Paragraph, Span, Title, page, setupGroup, setupState, signal } from '../feather/index.js';
 
 const WEAPON_IMAGE_BY_ID = {
   1: swordImg,
@@ -48,10 +53,6 @@ const ITEM_IMAGE_BY_ID = {
 };
 
 const MAIN_ICONS = {
-  user: '<path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>',
-  profile: '<path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15a7.488 7.488 0 0 0-5.982 3.725m11.964 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275m11.963 0A24.973 24.973 0 0 1 12 16.5a24.973 24.973 0 0 1-5.982 2.275" />',
-  cloud: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33A3 3 0 0116.5 19.5H6.75z" />',
-  logout: '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />',
   plus: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />',
 };
 
@@ -141,71 +142,6 @@ function mainOrnament() {
     Box().className('mn-ornament-diamond'),
     Box().className('mn-ornament-line'),
   ).className('mn-ornament');
-}
-
-function mainNav(ctx) {
-  const displayName = ctx.user.displayName.get();
-  const isViewMode = ctx.view.isViewingPlayer;
-
-  return Nav(
-    Box(
-      Link('Bloodwave').href('/').dataLink().className('mn-logo'),
-      isViewMode
-        ? null
-        : Box(
-          Link(Span('Matches')).href('/main').dataLink().className('mn-link active'),
-          Link(Span('Stats')).href('/stats').dataLink().className('mn-link'),
-          Link(Span('Leaderboard')).href('/leaderboard').dataLink().className('mn-link'),
-          Link(Span('Achievements')).href('/achievements').dataLink().className('mn-link'),
-        ).className('mn-links'),
-      Box(
-        isViewMode
-          ? Link('Back to Dashboard').href('/main').dataLink().className('mn-nav-link').id('mnBackToDashboard')
-          : null,
-        isViewMode
-          ? null
-          : Box(
-            Button(svgIcon(MAIN_ICONS.user, 'currentColor', 'none')).className('mn-avatar').id('mn-avatar-btn').ariaLabel('Profile menu').attr('aria-expanded', 'false'),
-            Box(
-              Box(
-                Box(displayName).className('mn-dd-username').id('mn-dd-username'),
-                Box('Member').className('mn-dd-role'),
-              ).className('mn-dd-header'),
-              Link(svgIcon(MAIN_ICONS.profile), 'Profile').href('/user-panel').dataLink().className('mn-dd-item').attr('role', 'menuitem'),
-              Link(svgIcon(MAIN_ICONS.cloud), 'Installation').href('/android-download').dataLink().className('mn-dd-item').attr('role', 'menuitem'),
-              Box().className('mn-dd-divider'),
-              Button(svgIcon(MAIN_ICONS.logout), 'Logout').className('mn-dd-item logout').id('mn-dd-logout').attr('role', 'menuitem'),
-            ).className('mn-avatar-dropdown').id('mn-avatar-dropdown').attr('role', 'menu'),
-          ).className('mn-avatar-wrap'),
-        isViewMode
-          ? null
-          : Button(
-            Span().className('mn-bar'),
-            Span().className('mn-bar'),
-            Span().className('mn-bar'),
-          ).className('mn-hamburger').id('mn-hamburger').ariaLabel('Toggle menu').attr('aria-expanded', 'false'),
-      ).className('mn-right'),
-    ).className('mn-nav-inner'),
-    isViewMode
-      ? null
-      : Box(
-        Box(
-          Link('Matches').href('/main').dataLink().className('mn-mobile-link'),
-          Link('Stats').href('/stats').dataLink().className('mn-mobile-link'),
-          Link('Leaderboard').href('/leaderboard').dataLink().className('mn-mobile-link'),
-          Link('Achievements').href('/achievements').dataLink().className('mn-mobile-link'),
-          Box().className('mn-mobile-divider'),
-          Box(
-            Span(svgIcon(MAIN_ICONS.user, 'currentColor', 'none')).className('mn-mobile-avatar'),
-            Span(displayName).id('mn-mobile-username'),
-          ).className('mn-mobile-profile').style({ pointerEvents: 'none', cursor: 'default' }),
-          Box().className('mn-mobile-divider'),
-          Link('Profile').href('/user-panel').dataLink().className('mn-mobile-link'),
-          Link('Installation').href('/android-download').dataLink().className('mn-mobile-link'),
-          Button(svgIcon(MAIN_ICONS.logout), 'Logout').className('mn-mobile-logout').id('mn-mobile-logout'),
-        ).className('mn-mobile-menu-inner'),
-      ).className('mn-mobile-menu').id('mn-mobile-menu'),
-  ).className('mn-nav');
 }
 
 function selectMainMatch(ctx, matchId) {
@@ -518,7 +454,12 @@ function mainPlayerStats(ctx) {
 function createMainView(ctx) {
   return Box(
     Box().className('mn-glow'),
-    mainNav(ctx),
+    DashboardNavbar({
+      variant: 'main',
+      active: 'matches',
+      username: ctx.user.displayName,
+      viewMode: ctx.view.isViewingPlayer,
+    }),
     MainContent(
       Box(
         Box(
@@ -527,14 +468,14 @@ function createMainView(ctx) {
           Paragraph('Select a run to view details').className('mn-placeholder-sub'),
           Box(
             Span('Viewing').className('mn-viewing-kicker'),
-            Span(ctx.view.viewedPlayerName.get()).className('mn-viewing-name').id('mn-viewing-name'),
+            Span(ctx.view.viewedPlayerName).className('mn-viewing-name').id('mn-viewing-name'),
           ).className('mn-viewing-user').id('mn-viewing-user').style({ display: ctx.view.isViewingPlayer ? 'inline-flex' : 'none' }),
         ).className('mn-matches-head'),
         Box(
-          Box(mainMatchList(ctx)).className('mn-matches-list').id('mn-matches-list').attr('role', 'listbox').attr('aria-label', 'Played matches'),
-          Box(mainMatchPanel(ctx)).className('mn-match-panel').id('mn-match-panel').attr('aria-live', 'polite'),
+          Box(() => mainMatchList(ctx)).className('mn-matches-list').id('mn-matches-list').attr('role', 'listbox').attr('aria-label', 'Played matches'),
+          Box(() => mainMatchPanel(ctx)).className('mn-match-panel').id('mn-match-panel').attr('aria-live', 'polite'),
         ).className('mn-matches-layout'),
-        Box(mainPlayerStats(ctx)).className('mn-player-stats').id('mn-player-stats').attr('aria-live', 'polite'),
+        Box(() => mainPlayerStats(ctx)).className('mn-player-stats').id('mn-player-stats').attr('aria-live', 'polite'),
       ).className('mn-matches-shell'),
     ).className('mn-content'),
   ).className(ctx.view.isViewingPlayer ? 'mn-root mn-view-mode' : 'mn-root');
@@ -551,7 +492,7 @@ const Main = page({
     return setupState(
       setupGroup('user', {
         current: user,
-        displayName: signal(user?.username ?? user?.email ?? 'Member'),
+        displayName: signal(resolveDashboardDisplayName(user)),
       }),
       setupGroup('view', {
         isViewingPlayer: viewedPlayerId !== null,
@@ -572,96 +513,16 @@ const Main = page({
   },
 
   mount(ctx) {
-    const { container } = ctx;
     const user = ctx.user.current;
-
-    const hamburger = container.querySelector('#mn-hamburger');
-    const mobileMenu = container.querySelector('#mn-mobile-menu');
-    let menuOpen = false;
-
-    const handleHamburgerClick = () => {
-      if (!mobileMenu) return;
-      menuOpen = !menuOpen;
-      hamburger.classList.toggle('open', menuOpen);
-      hamburger.setAttribute('aria-expanded', String(menuOpen));
-      mobileMenu.style.maxHeight = menuOpen ? `${mobileMenu.scrollHeight}px` : '0';
-    };
-    hamburger?.addEventListener('click', handleHamburgerClick);
-    ctx.cleanup(() => hamburger?.removeEventListener('click', handleHamburgerClick));
-
-    mobileMenu?.querySelectorAll('.mn-mobile-link').forEach((link) => {
-      const handleMobileLinkClick = () => {
-        menuOpen = false;
-        hamburger?.classList.remove('open');
-        hamburger?.setAttribute('aria-expanded', 'false');
-        if (mobileMenu) mobileMenu.style.maxHeight = '0';
-      };
-      link.addEventListener('click', handleMobileLinkClick);
-      ctx.cleanup(() => link.removeEventListener('click', handleMobileLinkClick));
-    });
-
-    const avatarBtn = container.querySelector('#mn-avatar-btn');
-    const avatarDropdown = container.querySelector('#mn-avatar-dropdown');
-    const handleAvatarClick = (event) => {
-      event.stopPropagation();
-      avatarDropdown?.classList.toggle('open');
-      avatarBtn.setAttribute('aria-expanded', String(avatarDropdown?.classList.contains('open')));
-    };
-    avatarBtn?.addEventListener('click', handleAvatarClick);
-    ctx.cleanup(() => avatarBtn?.removeEventListener('click', handleAvatarClick));
-
-    const handleDocumentClick = (event) => {
-      const clickTarget = event.target instanceof Element ? event.target : null;
-      if (!clickTarget?.closest('.mn-avatar-wrap')) {
-        avatarDropdown?.classList.remove('open');
-        avatarBtn?.setAttribute('aria-expanded', 'false');
-      }
-    };
-    document.addEventListener('click', handleDocumentClick);
-    ctx.cleanup(() => document.removeEventListener('click', handleDocumentClick));
-
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        avatarDropdown?.classList.remove('open');
-        avatarBtn?.setAttribute('aria-expanded', 'false');
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
-    ctx.cleanup(() => document.removeEventListener('keydown', handleEscape));
-
-    const doLogout = async () => {
-      const confirmed = await confirmLogout();
-      if (!confirmed) return;
-      await logout();
-    };
-
-    const desktopLogout = container.querySelector('#mn-dd-logout');
-    const mobileLogout = container.querySelector('#mn-mobile-logout');
-    desktopLogout?.addEventListener('click', doLogout);
-    mobileLogout?.addEventListener('click', doLogout);
-    ctx.cleanup(() => desktopLogout?.removeEventListener('click', doLogout));
-    ctx.cleanup(() => mobileLogout?.removeEventListener('click', doLogout));
-
+    mountDashboardNavbar(ctx, { variant: 'main' });
+    
     void ctx.once('main.boot', async () => {
-      void refreshNavbarUsername();
+      void refreshDashboardNavbarUsername(ctx, ctx.user.displayName, 'main.navbar-username');
       if (ctx.view.isViewingPlayer && ctx.view.viewedPlayerId !== null) {
         void loadViewedPlayerUsername(ctx.view.viewedPlayerId, ctx);
       }
       void loadMatches();
     });
-
-    async function refreshNavbarUsername() {
-      try {
-        const res = await authFetch(`${API_BASE}/api/User/me`, {
-          method: 'GET',
-          headers: { Accept: 'application/json' },
-        });
-        if (!res.ok) return;
-
-        const userData = await res.json();
-        ctx.user.displayName.set(userData?.username ?? userData?.email ?? ctx.user.displayName.get());
-      } catch {}
-    }
 
     async function loadMatches() {
       const playerId = resolvePlayerId(user);

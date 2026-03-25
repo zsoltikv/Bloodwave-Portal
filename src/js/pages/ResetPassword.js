@@ -297,22 +297,13 @@ const ResetPassword = page({
       }),
       setupGroup('transition', {
         ...transition,
-        formStyle: computed(() => {
-          if (transition.formHidden.get()) {
-            return { display: 'none' };
-          }
-
-          if (transition.formLeaving.get()) {
-            return {
-              opacity: '0',
-              pointerEvents: 'none',
-              transform: 'translateY(-8px)',
-              transition: 'opacity 0.35s ease, transform 0.35s ease',
-            };
-          }
-
-          return {};
-        }),
+        style: {
+          display: computed(() => (transition.formHidden.get() ? 'none' : 'block')),
+          opacity: computed(() => (transition.formLeaving.get() ? '0' : '1')),
+          pointerEvents: computed(() => (transition.formLeaving.get() ? 'none' : 'auto')),
+          transform: computed(() => (transition.formLeaving.get() ? 'translateY(-8px)' : 'translateY(0)')),
+          transition: computed(() => (transition.formLeaving.get() ? 'opacity 0.35s ease, transform 0.35s ease' : 'none')),
+        },
       }),
     );
   },
@@ -403,11 +394,11 @@ const ResetPassword = page({
             )
               .form(ctx.form)
               .id('rpForm')
-              .bindStyle('display', computed(() => (ctx.transition.formHidden.get() ? 'none' : 'block')))
-              .bindStyle('opacity', computed(() => (ctx.transition.formLeaving.get() ? '0' : '1')))
-              .bindStyle('pointerEvents', computed(() => (ctx.transition.formLeaving.get() ? 'none' : 'auto')))
-              .bindStyle('transform', computed(() => (ctx.transition.formLeaving.get() ? 'translateY(-8px)' : 'translateY(0)')))
-              .bindStyle('transition', computed(() => (ctx.transition.formLeaving.get() ? 'opacity 0.35s ease, transform 0.35s ease' : 'none'))),
+              .bindStyle('display', ctx.transition.style.display)
+              .bindStyle('opacity', ctx.transition.style.opacity)
+              .bindStyle('pointerEvents', ctx.transition.style.pointerEvents)
+              .bindStyle('transform', ctx.transition.style.transform)
+              .bindStyle('transition', ctx.transition.style.transition),
             Box(
               Box(
                 Icon()
