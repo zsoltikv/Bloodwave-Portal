@@ -67,5 +67,16 @@
 .bw-forgot:hover { color: rgba(212,175,55,0.85); letter-spacing: 3px; }
 
 @media (max-width: 400px) {
-  .bw-extras { flex-direction: column; align-items: flex-start; }
+  .bw-extras {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .bw-forgot {
+    white-space: nowrap;
+    min-width: max-content;
+  }
 }
