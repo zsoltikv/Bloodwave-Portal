@@ -1054,7 +1054,7 @@
         }
 
         .mn-matches-shell {
-          padding-bottom: calc(var(--mn-summary-height) + var(--mn-summary-gap) + env(safe-area-inset-bottom, 0px));
+          padding-bottom: clamp(14px, 3vh, 24px);
         }
 
         .mn-matches-layout {
@@ -1070,13 +1070,13 @@
         }
 
         .mn-match-panel {
-          position: fixed;
-          left: clamp(16px, 4vw, 48px);
-          right: clamp(16px, 4vw, 48px);
-          bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-          z-index: 130;
-          height: var(--mn-summary-height);
-          overflow: auto;
+          position: relative;
+          left: auto;
+          right: auto;
+          bottom: auto;
+          z-index: auto;
+          height: auto;
+          overflow: visible;
           margin-top: 0;
           padding: 12px;
           background: linear-gradient(155deg, rgba(24,8,8,0.97) 0%, rgba(11,3,3,0.99) 100%);
