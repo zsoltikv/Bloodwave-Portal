@@ -199,7 +199,7 @@ const ToS = page({
             Box(
               Link(
                 Box().className('bw-btn-shimmer'),
-                Box().className('bw-btn-text').text(ctx.cta.label),
+                Box().className('bw-btn-text').text(() => ctx.cta.label),
               )
                 .href(ctx.cta.href)
                 .dataLink()

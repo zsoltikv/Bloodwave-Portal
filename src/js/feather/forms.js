@@ -77,6 +77,28 @@ function normalizeTouched(values, names) {
   );
 }
 
+function createStateRegistry() {
+  const localState = new Map();
+  const localMemo = new Map();
+
+  return {
+    state(key, initialValue) {
+      if (!localState.has(key)) {
+        localState.set(key, signal(initialValue));
+      }
+
+      return localState.get(key);
+    },
+    memo(key, createValue) {
+      if (!localMemo.has(key)) {
+        localMemo.set(key, createValue());
+      }
+
+      return localMemo.get(key);
+    },
+  };
+}
+
 export function createForm({
   initial = {},
   accepts = [],
@@ -90,8 +112,7 @@ export function createForm({
   const submitting = signal(false);
   const submitError = signal(null);
   const fieldCache = new Map();
-  const localState = new Map();
-  const localMemo = new Map();
+  const registry = createStateRegistry();
   const normalizedAccepts = normalizeAccepts(accepts);
 
   const fieldNames = Object.keys(initialValues);
@@ -113,8 +134,7 @@ export function createForm({
       return fieldCache.get(name);
     }
 
-    const localState = new Map();
-    const localMemo = new Map();
+    const fieldRegistry = createStateRegistry();
 
     const nextField = {
       __featherField: true,
@@ -135,20 +155,8 @@ export function createForm({
           touchField(name, false);
         });
       },
-      state(key, initialValue) {
-        if (!localState.has(key)) {
-          localState.set(key, signal(initialValue));
-        }
-
-        return localState.get(key);
-      },
-      memo(key, createValue) {
-        if (!localMemo.has(key)) {
-          localMemo.set(key, createValue());
-        }
-
-        return localMemo.get(key);
-      },
+      state: fieldRegistry.state,
+      memo: fieldRegistry.memo,
       bind(props = {}) {
         return mergeProps(props, { field: nextField });
       },
@@ -231,20 +239,8 @@ export function createForm({
     dirty,
     accepts: normalizedAccepts,
     field,
-    state(key, initialValue) {
-      if (!localState.has(key)) {
-        localState.set(key, signal(initialValue));
-      }
-
-      return localState.get(key);
-    },
-    memo(key, createValue) {
-      if (!localMemo.has(key)) {
-        localMemo.set(key, createValue());
-      }
-
-      return localMemo.get(key);
-    },
+    state: registry.state,
+    memo: registry.memo,
     validate: validateForm,
     reset,
     submit: submitForm,
@@ -311,12 +307,9 @@ export function FieldError(field, fallback = null) {
       .className(cx('feather-field-error', className));
   }
 
-  const message = resolvedField.error.get();
-  if (!message && !alwaysRender) {
-    return null;
-  }
-
-  return Paragraph(message || fallbackContent || '')
+  return Paragraph()
+    .text(() => resolvedField.error.get() || fallbackContent || '')
+    .showWhen(alwaysRender ? true : () => Boolean(resolvedField.error.get()))
     .className(cx('feather-field-error', className));
 }
 

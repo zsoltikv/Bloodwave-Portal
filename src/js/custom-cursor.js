@@ -19,6 +19,7 @@ let targetY = 0;
 let pointerActive = false;
 let listenersController = null;
 let lastFrameTime = 0;
+let resizeFrameId = 0;
 
 function supportsFancyCursor() {
   if (isPhoneDevice()) return false;
@@ -241,8 +242,16 @@ export default function ensureCustomCursor() {
   }, { signal: listenersController.signal });
 
   window.addEventListener('resize', () => {
-    if (!supportsFancyCursor()) {
-      teardownCustomCursor();
+    if (resizeFrameId) {
+      cancelAnimationFrame(resizeFrameId);
     }
+
+    resizeFrameId = requestAnimationFrame(() => {
+      resizeFrameId = 0;
+
+      if (!supportsFancyCursor()) {
+        teardownCustomCursor();
+      }
+    });
   }, { passive: true, signal: listenersController.signal });
 }

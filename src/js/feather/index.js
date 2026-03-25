@@ -41,7 +41,6 @@ export {
   ZStack,
   createDomNode,
   createPrimitive,
-  dynamic,
   html,
   mergeProps,
   mountView,

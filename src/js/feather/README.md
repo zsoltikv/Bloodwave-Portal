@@ -6,7 +6,7 @@ It does not use a virtual DOM, JSX, a compiler, or a template language. The fram
 
 - create long-lived state in `setup()`
 - describe UI with plain function calls
-- bind reactive values directly to DOM-facing children and props
+- bind reactive values through functions in DOM-facing children and props
 - use small local reactive regions instead of broad page rerenders
 - keep styling and application structure close to normal HTML and CSS
 
@@ -28,7 +28,7 @@ Feather pages follow a setup-first model:
 1. `setup(ctx)` runs once for the route instance.
 2. `render(ctx)` runs as a one-time view pass that builds the page shell.
 3. `mount(ctx)` runs after the initial DOM has been mounted.
-4. Reactive children, reactive props, inline getter regions, `Show(...)`, and `ForEach(...)` update only their local DOM region.
+4. Function-based child bindings, function-based props, inline getter regions, `Show(...)`, and `ForEach(...)` update only their local DOM region.
 
 Important rule: create reactive values in `setup()` or module scope, not inside `render()`. Feather throws if `signal()`, `computed()`, `store()`, or `effect()` are created during render.
 
@@ -39,13 +39,13 @@ Important rule: create reactive values in `setup()` or module scope, not inside 
 Prefer these patterns:
 
 ```js
-Title('Count: ', count);
+Title('Count: ', () => count.get());
 
 Box(() => (count.get() > 0 ? 'Ready' : 'Idle'));
 
 Paragraph()
-  .text(submitState.message)
-  .showWhen(submitState.visible);
+  .text(() => submitState.message.get())
+  .showWhen(() => submitState.visible.get());
 ```
 
 Avoid this pattern for dynamic UI:
@@ -246,18 +246,6 @@ Available members:
 ### `effect(fn)`
 
 Runs immediately, tracks dependencies, and reruns when they change. If `fn` returns a function, that function becomes cleanup for the next run or disposal.
-
-### `dynamic(getter)`
-
-Creates a reactive child region.
-
-For new code, prefer inline getter children such as:
-
-```js
-Box(() => status.get());
-```
-
-`dynamic(getter)` remains available as a compatibility alias and uses the same local-region model as `Show(...)` and `ForEach(...)`.
 
 ### Other reactive helpers
 

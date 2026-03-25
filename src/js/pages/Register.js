@@ -147,7 +147,7 @@ async function submitRegister(values, submitState, ctx) {
 function FieldError({ field, style = null }) {
   return Paragraph()
     .className('bw-error')
-    .text(field.error)
+    .text(() => field.error.get())
     .when(style, (node) => node.style(style));
 }
 
@@ -205,10 +205,10 @@ function PasswordStrengthLine({ active, pulse, gradient, glow }) {
   return Box()
     .id('pwStrengthLine')
     .className('bw-input-line')
-    .bindClass('bw-pw-active', active)
-    .bindClass('bw-pw-pulse', pulse)
-    .bindStyle('--pw-gradient', gradient)
-    .bindStyle('boxShadow', glow);
+    .bindClass('bw-pw-active', () => active.get())
+    .bindClass('bw-pw-pulse', () => pulse.get())
+    .bindStyle('--pw-gradient', () => gradient.get())
+    .bindStyle('boxShadow', () => glow.get());
 }
 
 function TermsField(field) {
@@ -439,12 +439,12 @@ const Register = page({
                   .with(bloodwavePasswordInput)
                   .id('rxPassword')
                   .field(passwordField)
-                  .type(ctx.password.visibility.inputType)
-                  .ariaInvalid(passwordField.invalid)
+                  .type(() => ctx.password.visibility.inputType.get())
+                  .ariaInvalid(() => passwordField.invalid.get())
                   .onEscape(() => ctx.password.visibility.revealed.set(false)),
                 PasswordToggle({
                   revealed: ctx.password.visibility.revealed,
-                  iconMarkup: ctx.password.visibility.icon,
+                  iconMarkup: () => ctx.password.visibility.icon.get(),
                   label: 'Toggle password visibility',
                 }),
                 PasswordStrengthLine(ctx.password.strength),
@@ -460,12 +460,12 @@ const Register = page({
                   .with(bloodwavePasswordInput)
                   .id('rxConfirm')
                   .field(confirmField)
-                  .type(ctx.confirmState.visibility.inputType)
-                  .ariaInvalid(confirmField.invalid)
+                  .type(() => ctx.confirmState.visibility.inputType.get())
+                  .ariaInvalid(() => confirmField.invalid.get())
                   .onEscape(() => ctx.confirmState.visibility.revealed.set(false)),
                 PasswordToggle({
                   revealed: ctx.confirmState.visibility.revealed,
-                  iconMarkup: ctx.confirmState.visibility.icon,
+                  iconMarkup: () => ctx.confirmState.visibility.icon.get(),
                   label: 'Toggle confirm password visibility',
                 }),
                 Box().with(bloodwaveFieldLine),
@@ -481,17 +481,17 @@ const Register = page({
               TermsField(tosField),
               Paragraph()
                 .className('bw-error')
-                .text(ctx.submit.error)
-                .showWhen(ctx.submit.error)
+                .text(() => ctx.submit.error.get())
+                .showWhen(() => ctx.submit.error.get())
                 .textAlign('center')
                 .margin({ top: '0', bottom: '14px' }),
               SubmitButton(
                 ctx.form,
                 Box().className('bw-btn-shimmer'),
-                Box().className('bw-btn-text').text(ctx.submit.label),
+                Box().className('bw-btn-text').text(() => ctx.submit.label.get()),
               )
                 .className('bw-btn')
-                .bindClass('success', ctx.submit.success)
+                .bindClass('success', () => ctx.submit.success.get())
                 .id('rxBtn'),
               Divider(),
               FooterLink(),

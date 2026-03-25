@@ -4,6 +4,7 @@ import { cx, token } from './theme.js';
 const FRAGMENT = Symbol('feather.fragment');
 const FEATHER_RUNTIME_STYLE_ID = 'feather-runtime-styles';
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+const bindingWarnings = new Set();
 const SVG_TAGS = new Set([
   'svg',
   'path',
@@ -72,10 +73,6 @@ function isFormObject(value) {
   return Boolean(value) && typeof value === 'object' && value.__featherForm === true;
 }
 
-function isFieldObject(value) {
-  return Boolean(value) && typeof value === 'object' && value.__featherField === true;
-}
-
 function flattenValue(value) {
   if (Array.isArray(value)) {
     return value.map(flattenValue).join('');
@@ -138,15 +135,103 @@ function composeHandlers(...handlers) {
   };
 }
 
-function readBoundValue(binding) {
-  if (isFieldObject(binding)) {
-    return binding.value;
+function warnBinding(message) {
+  if (bindingWarnings.has(message)) {
+    return;
   }
 
-  return binding;
+  bindingWarnings.add(message);
+  console.warn(message);
 }
 
-function resolveModelBindingProps(props = {}) {
+function isReactiveGetter(value) {
+  return typeof value === 'function' && value.length === 0;
+}
+
+function isGetterBinding(value) {
+  if (isReactiveGetter(value)) {
+    return true;
+  }
+
+  if (Array.isArray(value)) {
+    return value.some(isGetterBinding);
+  }
+
+  if (isPlainObject(value)) {
+    return Object.values(value).some(isGetterBinding);
+  }
+
+  return false;
+}
+
+function isReactiveBinding(value) {
+  return isGetterBinding(value) || containsReactive(value);
+}
+
+function unwrapBinding(value) {
+  if (isReactiveGetter(value)) {
+    return unwrapBinding(value());
+  }
+
+  if (isReactive(value)) {
+    return unwrapBinding(value.get());
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(unwrapBinding);
+  }
+
+  if (isPlainObject(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entryValue]) => [key, unwrapBinding(entryValue)]),
+    );
+  }
+
+  return value;
+}
+
+function readCurrentValue(value) {
+  if (isReactiveGetter(value)) {
+    return unwrapBinding(value());
+  }
+
+  if (containsReactive(value)) {
+    return unwrapBinding(value);
+  }
+
+  return read(value);
+}
+
+function createReactiveGetter(value, legacyMessage = null) {
+  if (isReactiveGetter(value)) {
+    return () => unwrapBinding(value());
+  }
+
+  if (isGetterBinding(value)) {
+    return () => unwrapBinding(value);
+  }
+
+  if (containsReactive(value)) {
+    if (legacyMessage) {
+      warnBinding(legacyMessage);
+    }
+
+    return () => unwrapBinding(value);
+  }
+
+  return null;
+}
+
+function mapReactive(value, mapper, legacyMessage = null) {
+  const reactiveGetter = createReactiveGetter(value, legacyMessage);
+  if (reactiveGetter) {
+    return () => mapper(reactiveGetter());
+  }
+
+  return mapper(readCurrentValue(value));
+}
+
+function resolveModelBindings(props = {}) {
   const { model, field, onInput, onChange, type, checked, value, ...rest } = props;
   const binding = field || model;
 
@@ -154,13 +239,17 @@ function resolveModelBindingProps(props = {}) {
     return props;
   }
 
-  const nextType = isReactive(type) ? type : read(type);
-  const isCheckboxLike = nextType === 'checkbox' || nextType === 'radio';
+  const currentType = readCurrentValue(type);
+  const nextType = type === undefined ? currentType : type;
+  const isCheckboxLike = currentType === 'checkbox' || currentType === 'radio';
+  const invalidAttrs = field?.invalid
+    ? { 'aria-invalid': () => field.invalid.get() }
+    : null;
 
   if (isCheckboxLike) {
     return mergeProps(rest, {
       type: nextType,
-      checked: field ? field.value : (model || checked),
+      checked: field ? () => field.value.get() : (model || checked),
       onChange: composeHandlers((event) => {
         if (binding?.set) {
           binding.set(Boolean(event.target.checked));
@@ -170,13 +259,13 @@ function resolveModelBindingProps(props = {}) {
           field.touch();
         }
       }, onChange),
-      attrs: field?.invalid ? { 'aria-invalid': field.invalid } : null,
+      attrs: invalidAttrs,
     });
   }
 
   return mergeProps(rest, {
     type: nextType,
-    value: field ? field.value : (model || value),
+    value: field ? () => field.value.get() : (model || value),
     onInput: composeHandlers((event) => {
       if (binding?.set) {
         binding.set(event.target.value);
@@ -187,7 +276,7 @@ function resolveModelBindingProps(props = {}) {
       }
     }, onInput),
     onChange,
-    attrs: field?.invalid ? { 'aria-invalid': field.invalid } : null,
+    attrs: invalidAttrs,
   });
 }
 
@@ -209,18 +298,19 @@ function resolveFormProps(props = {}) {
 }
 
 function resolveSemanticClass(group, value, fallbackPrefix) {
-  const resolvedValue = read(value);
-  const semanticClass = token(`${group}.${resolvedValue}`);
+  return mapReactive(value, (resolvedValue) => {
+    const semanticClass = token(`${group}.${resolvedValue}`);
 
-  if (semanticClass) {
-    return semanticClass;
-  }
+    if (semanticClass) {
+      return semanticClass;
+    }
 
-  if (!fallbackPrefix || resolvedValue === null || resolvedValue === undefined || resolvedValue === false) {
-    return '';
-  }
+    if (!fallbackPrefix || resolvedValue === null || resolvedValue === undefined || resolvedValue === false) {
+      return '';
+    }
 
-  return `${fallbackPrefix}-${resolvedValue}`;
+    return `${fallbackPrefix}-${resolvedValue}`;
+  });
 }
 
 function resolveTailwindSize(prefix, value) {
@@ -263,18 +353,19 @@ function resolveAlignClass(value) {
 }
 
 function resolveAnimateClass(value = 'pulse') {
-  const resolvedValue = read(value);
-  const semanticAnimation = token(`animation.${resolvedValue}`);
+  return mapReactive(value, (resolvedValue) => {
+    const semanticAnimation = token(`animation.${resolvedValue}`);
 
-  if (semanticAnimation) {
-    return semanticAnimation;
-  }
+    if (semanticAnimation) {
+      return semanticAnimation;
+    }
 
-  if (String(resolvedValue).startsWith('animate-')) {
-    return String(resolvedValue);
-  }
+    if (String(resolvedValue).startsWith('animate-')) {
+      return String(resolvedValue);
+    }
 
-  return `animate-${resolvedValue}`;
+    return `animate-${resolvedValue}`;
+  });
 }
 
 function runCleanups(cleanups) {
@@ -443,7 +534,13 @@ function resolveBoxModelStyles(property, args) {
     return styles;
   }
 
-  return { [property]: args.map((value) => read(value)).join(' ') };
+  if (args.some(isReactiveBinding)) {
+    return {
+      [property]: () => args.map((value) => readCurrentValue(value)).join(' '),
+    };
+  }
+
+  return { [property]: args.map((value) => readCurrentValue(value)).join(' ') };
 }
 
 function resolveShadowValue(args) {
@@ -464,13 +561,21 @@ function resolveShadowValue(args) {
         color = 'currentColor',
       } = value;
 
-      return `${inset ? 'inset ' : ''}${read(x)} ${read(y)} ${read(blur)} ${read(spread)} ${read(color)}`.trim();
+      if ([inset, x, y, blur, spread, color].some(isReactiveBinding)) {
+        return () => `${readCurrentValue(inset) ? 'inset ' : ''}${readCurrentValue(x)} ${readCurrentValue(y)} ${readCurrentValue(blur)} ${readCurrentValue(spread)} ${readCurrentValue(color)}`.trim();
+      }
+
+      return `${readCurrentValue(inset) ? 'inset ' : ''}${readCurrentValue(x)} ${readCurrentValue(y)} ${readCurrentValue(blur)} ${readCurrentValue(spread)} ${readCurrentValue(color)}`.trim();
     }
 
-    return read(value);
+    return readCurrentValue(value);
   }
 
-  return args.map((value) => read(value)).join(' ');
+  if (args.some(isReactiveBinding)) {
+    return () => args.map((value) => readCurrentValue(value)).join(' ');
+  }
+
+  return args.map((value) => readCurrentValue(value)).join(' ');
 }
 
 function addAttributes(node, nextAttributes) {
@@ -537,24 +642,6 @@ function containsReactive(value) {
   }
 
   return false;
-}
-
-function unwrapReactive(value) {
-  if (isReactive(value)) {
-    return value.get();
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(unwrapReactive);
-  }
-
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, entryValue]) => [key, unwrapReactive(entryValue)]),
-    );
-  }
-
-  return value;
 }
 
 function applyPrimitiveModifier(node, name, value) {
@@ -718,38 +805,38 @@ function withModifiers(node) {
   addModifierMethod(node, 'disabledWhen', (value = true) => node.disabled(value));
   addModifierMethod(node, 'submit', () => cloneNode(node, { props: { type: 'submit' } }));
 
-  addModifierMethod(node, 'width', (value) => addClass(node, resolveTailwindSize('w', read(value))));
-  addModifierMethod(node, 'height', (value) => addClass(node, resolveTailwindSize('h', read(value))));
-  addModifierMethod(node, 'minWidth', (value) => addClass(node, resolveTailwindSize('min-w', read(value))));
-  addModifierMethod(node, 'minHeight', (value) => addClass(node, resolveTailwindSize('min-h', read(value))));
-  addModifierMethod(node, 'maxWidth', (value) => addClass(node, resolveTailwindSize('max-w', read(value))));
-  addModifierMethod(node, 'maxHeight', (value) => addClass(node, resolveTailwindSize('max-h', read(value))));
+  addModifierMethod(node, 'width', (value) => addClass(node, mapReactive(value, (nextValue) => resolveTailwindSize('w', nextValue))));
+  addModifierMethod(node, 'height', (value) => addClass(node, mapReactive(value, (nextValue) => resolveTailwindSize('h', nextValue))));
+  addModifierMethod(node, 'minWidth', (value) => addClass(node, mapReactive(value, (nextValue) => resolveTailwindSize('min-w', nextValue))));
+  addModifierMethod(node, 'minHeight', (value) => addClass(node, mapReactive(value, (nextValue) => resolveTailwindSize('min-h', nextValue))));
+  addModifierMethod(node, 'maxWidth', (value) => addClass(node, mapReactive(value, (nextValue) => resolveTailwindSize('max-w', nextValue))));
+  addModifierMethod(node, 'maxHeight', (value) => addClass(node, mapReactive(value, (nextValue) => resolveTailwindSize('max-h', nextValue))));
   addModifierMethod(node, 'widthStyle', (value) => addStyleEntries(node, { width: value }));
   addModifierMethod(node, 'heightStyle', (value) => addStyleEntries(node, { height: value }));
   addModifierMethod(node, 'minWidthStyle', (value) => addStyleEntries(node, { minWidth: value }));
   addModifierMethod(node, 'minHeightStyle', (value) => addStyleEntries(node, { minHeight: value }));
   addModifierMethod(node, 'maxWidthStyle', (value) => addStyleEntries(node, { maxWidth: value }));
   addModifierMethod(node, 'maxHeightStyle', (value) => addStyleEntries(node, { maxHeight: value }));
-  addModifierMethod(node, 'rounded', (value = 'md') => addClass(node, read(value) === 'none' ? 'rounded-none' : `rounded-${read(value)}`));
+  addModifierMethod(node, 'rounded', (value = 'md') => addClass(node, mapReactive(value, (nextValue) => (nextValue === 'none' ? 'rounded-none' : `rounded-${nextValue}`))));
   addModifierMethod(node, 'background', (value) => addClass(node, resolveSemanticClass('background', value, 'bg')));
   addModifierMethod(node, 'textColor', (value) => addClass(node, resolveSemanticClass('text', value, 'text')));
-  addModifierMethod(node, 'border', (value = true) => addClass(node, read(value) === true ? 'border' : `border-${read(value)}`));
+  addModifierMethod(node, 'border', (value = true) => addClass(node, mapReactive(value, (nextValue) => (nextValue === true ? 'border' : `border-${nextValue}`))));
   addModifierMethod(node, 'borderColor', (value) => addClass(node, resolveSemanticClass('border', value, 'border')));
-  addModifierMethod(node, 'opacity', (value) => addClass(node, `opacity-${read(value)}`));
-  addModifierMethod(node, 'display', (value) => addClass(node, String(read(value))));
-  addModifierMethod(node, 'font', (value) => addClass(node, `font-${read(value)}`));
-  addModifierMethod(node, 'textSize', (value) => addClass(node, `text-${read(value)}`));
-  addModifierMethod(node, 'leading', (value) => addClass(node, `leading-${read(value)}`));
-  addModifierMethod(node, 'tracking', (value) => addClass(node, `tracking-${read(value)}`));
-  addModifierMethod(node, 'justify', (value) => addClass(node, resolveJustifyClass(read(value))));
-  addModifierMethod(node, 'align', (value) => addClass(node, resolveAlignClass(read(value))));
-  addModifierMethod(node, 'items', (value) => addClass(node, `items-${read(value)}`));
-  addModifierMethod(node, 'self', (value) => addClass(node, `self-${read(value)}`));
-  addModifierMethod(node, 'grow', (value = true) => addClass(node, read(value) === true ? 'grow' : `grow-${read(value)}`));
-  addModifierMethod(node, 'shrink', (value = true) => addClass(node, read(value) === true ? 'shrink' : `shrink-${read(value)}`));
-  addModifierMethod(node, 'transition', (value = 'colors') => addClass(node, `transition-${read(value) === 'colors' ? 'colors' : read(value)}`));
-  addModifierMethod(node, 'duration', (value) => addClass(node, `duration-${read(value)}`));
-  addModifierMethod(node, 'ease', (value = 'out') => addClass(node, String(read(value)).startsWith('ease-') ? String(read(value)) : `ease-${read(value)}`));
+  addModifierMethod(node, 'opacity', (value) => addClass(node, mapReactive(value, (nextValue) => `opacity-${nextValue}`)));
+  addModifierMethod(node, 'display', (value) => addClass(node, mapReactive(value, (nextValue) => String(nextValue))));
+  addModifierMethod(node, 'font', (value) => addClass(node, mapReactive(value, (nextValue) => `font-${nextValue}`)));
+  addModifierMethod(node, 'textSize', (value) => addClass(node, mapReactive(value, (nextValue) => `text-${nextValue}`)));
+  addModifierMethod(node, 'leading', (value) => addClass(node, mapReactive(value, (nextValue) => `leading-${nextValue}`)));
+  addModifierMethod(node, 'tracking', (value) => addClass(node, mapReactive(value, (nextValue) => `tracking-${nextValue}`)));
+  addModifierMethod(node, 'justify', (value) => addClass(node, mapReactive(value, (nextValue) => resolveJustifyClass(nextValue))));
+  addModifierMethod(node, 'align', (value) => addClass(node, mapReactive(value, (nextValue) => resolveAlignClass(nextValue))));
+  addModifierMethod(node, 'items', (value) => addClass(node, mapReactive(value, (nextValue) => `items-${nextValue}`)));
+  addModifierMethod(node, 'self', (value) => addClass(node, mapReactive(value, (nextValue) => `self-${nextValue}`)));
+  addModifierMethod(node, 'grow', (value = true) => addClass(node, mapReactive(value, (nextValue) => (nextValue === true ? 'grow' : `grow-${nextValue}`))));
+  addModifierMethod(node, 'shrink', (value = true) => addClass(node, mapReactive(value, (nextValue) => (nextValue === true ? 'shrink' : `shrink-${nextValue}`))));
+  addModifierMethod(node, 'transition', (value = 'colors') => addClass(node, mapReactive(value, (nextValue) => `transition-${nextValue === 'colors' ? 'colors' : nextValue}`)));
+  addModifierMethod(node, 'duration', (value) => addClass(node, mapReactive(value, (nextValue) => `duration-${nextValue}`)));
+  addModifierMethod(node, 'ease', (value = 'out') => addClass(node, mapReactive(value, (nextValue) => (String(nextValue).startsWith('ease-') ? String(nextValue) : `ease-${nextValue}`))));
   addModifierMethod(node, 'animate', (value = 'pulse') => addClass(node, resolveAnimateClass(value)));
   addModifierMethod(node, 'absolute', () => addClass(node, 'absolute'));
   addModifierMethod(node, 'relative', () => addClass(node, 'relative'));
@@ -781,7 +868,7 @@ export function mergeProps(...sources) {
 
         if (key === 'class' || key === 'className') {
           classNames.push(value);
-          if (containsReactive(value)) {
+          if (isReactiveBinding(value)) {
             hasReactiveClassName = true;
           }
           return;
@@ -1136,10 +1223,15 @@ function applyResolvedProp(element, key, nextValue, context) {
   element.setAttribute(key, String(nextValue));
 }
 
-function applyProp(element, key, value, context) {
-  if (containsReactive(value)) {
+function applyReactiveProp(element, key, value, context) {
+  const legacyMessage = `Feather: pass reactive values to ${key} as functions, for example ${key}(() => value.get()). Direct reactive values still work for compatibility but are deprecated.`;
+  const reactiveGetter = (key.startsWith('on') || key === 'ref')
+    ? null
+    : createReactiveGetter(value, legacyMessage);
+
+  if (reactiveGetter) {
     const stop = effect(() => {
-      applyResolvedProp(element, key, unwrapReactive(value), context);
+      applyResolvedProp(element, key, reactiveGetter(), context);
     });
 
     context?.cleanup(stop);
@@ -1173,10 +1265,10 @@ function createElementNode(node, context) {
     ? { ...context, svgNamespace: true }
     : context;
   Object.entries(resolvedNode.nodeProps).forEach(([key, value]) => {
-    applyProp(element, key, value, childContext);
+    applyReactiveProp(element, key, value, childContext);
   });
 
-  if (containsReactive(node.meta?.state)) {
+  if (isReactiveBinding(node.meta?.state)) {
     let previousRuntimeProps = resolvedNode.nodeProps;
     const stop = effect(() => {
       const runtimeNode = resolveRuntimeNode(node);
@@ -1190,7 +1282,7 @@ function createElementNode(node, context) {
         applyResolvedProp(
           element,
           key,
-          unwrapReactive(Object.prototype.hasOwnProperty.call(nextRuntimeProps, key) ? nextRuntimeProps[key] : undefined),
+          unwrapBinding(Object.prototype.hasOwnProperty.call(nextRuntimeProps, key) ? nextRuntimeProps[key] : undefined),
           childContext,
         );
       });
@@ -1209,7 +1301,7 @@ function createElementNode(node, context) {
 }
 
 function resolveRuntimeNode(node) {
-  const runtimeState = unwrapReactive(node.meta?.state || {});
+  const runtimeState = unwrapBinding(node.meta?.state || {});
   const preparedProps = typeof node.meta?.prepareProps === 'function'
     ? node.meta.prepareProps(node.nodeProps, node.children)
     : node.nodeProps;
@@ -1240,6 +1332,7 @@ export function createDomNode(value, context) {
   }
 
   if (isReactive(value)) {
+    warnBinding('Feather: pass reactive children as functions, for example Box(() => count.get()). Direct reactive children still work for compatibility but are deprecated.');
     return createReactiveChildNode(value, context);
   }
 
@@ -1377,14 +1470,6 @@ export function setupState(...entries) {
     });
 
   return nextState;
-}
-
-export function dynamic(getter) {
-  if (typeof getter !== 'function') {
-    throw new Error('Feather: dynamic(getter) requires a function.');
-  }
-
-  return getter;
 }
 
 export function createRenderContext({ container, route, router, scope = {} }) {
@@ -2016,7 +2101,7 @@ export const Button = createPrimitive('button', {
 
 export const Input = createPrimitive('input', {
   kind: 'input',
-  prepareProps: (props) => resolveModelBindingProps(props),
+  prepareProps: (props) => resolveModelBindings(props),
   resolveClassName: (_state, node) => !node.meta?.styled ? '' : token('input.base'),
 });
 
@@ -2033,7 +2118,7 @@ export const Checkbox = createPrimitive('input', {
   defaults: {
     type: 'checkbox',
   },
-  prepareProps: (props) => resolveModelBindingProps(props),
+  prepareProps: (props) => resolveModelBindings(props),
   resolveClassName: (_state, node) => !node.meta?.styled ? '' : '',
 });
 
@@ -2046,7 +2131,16 @@ export const Link = createPrimitive('a', {
 });
 
 export function ForEach(items, renderItem) {
+  if (typeof items === 'function') {
+    return () => {
+      const resolvedItems = read(items());
+      if (!Array.isArray(resolvedItems)) return [];
+      return resolvedItems.map((item, index) => renderItem(item, index));
+    };
+  }
+
   if (containsReactive(items)) {
+    warnBinding('Feather: pass reactive ForEach sources as functions, for example ForEach(() => items.get(), renderItem). Direct reactive sources still work for compatibility but are deprecated.');
     return () => {
       const resolvedItems = read(items);
       if (!Array.isArray(resolvedItems)) return [];
@@ -2060,7 +2154,12 @@ export function ForEach(items, renderItem) {
 }
 
 export function Show(condition, truthyValue, falsyValue = null) {
+  if (typeof condition === 'function') {
+    return () => (read(condition()) ? truthyValue : falsyValue);
+  }
+
   if (containsReactive(condition)) {
+    warnBinding('Feather: pass reactive Show conditions as functions, for example Show(() => open.get(), shown, hidden). Direct reactive conditions still work for compatibility but are deprecated.');
     return () => (read(condition) ? truthyValue : falsyValue);
   }
 
@@ -2087,27 +2186,3 @@ export function Alert(...args) {
   });
 }
 
-export function InputField(props = {}) {
-  const {
-    label,
-    model,
-    type = 'text',
-    placeholder,
-    description,
-    ...rest
-  } = props;
-
-  return VStack(
-    Show(label, Label(label)),
-    Input(rest)
-      .type(type)
-      .placeholder(placeholder)
-      .value(model)
-      .onInput((event) => {
-        if (model?.set) {
-          model.set(event.target.value);
-        }
-      }),
-    Show(description, Text(description).textSize('sm').textColor('muted')),
-  ).gap(2);
-}

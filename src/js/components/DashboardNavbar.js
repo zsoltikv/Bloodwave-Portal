@@ -126,7 +126,12 @@ export function DashboardNavbar({
   const classNames = classes(config.classPrefix);
   const elementIds = ids(config.idPrefix);
   const resolvedLogoHref = logoHref || config.logoHref;
-  const resolvedUsername = username ?? config.fallbackDisplayName;
+  const resolvedUsername = () => {
+    const value = read(username);
+    return value === null || value === undefined || value === ''
+      ? config.fallbackDisplayName
+      : value;
+  };
 
   return Nav(
     Box(
@@ -149,7 +154,7 @@ export function DashboardNavbar({
             Button(icon(NAV_ICONS.user, 'currentColor', 'none')).className(classNames.avatar).id(elementIds.avatarButton).ariaLabel('Profile menu').attr('aria-expanded', 'false'),
             Box(
               Box(
-                Box(resolvedUsername).className(classNames.ddUsername).id(elementIds.desktopUsername),
+                Box(() => resolvedUsername()).className(classNames.ddUsername).id(elementIds.desktopUsername),
                 Box('Member').className(classNames.ddRole),
               ).className(classNames.ddHeader),
               Link(icon(NAV_ICONS.profile), 'Profile').href('/user-panel').dataLink().className(classNames.ddItem).attr('role', 'menuitem'),
@@ -175,7 +180,7 @@ export function DashboardNavbar({
           Box().className(classNames.mobileDivider),
           Box(
             Span(icon(NAV_ICONS.user, 'currentColor', 'none')).className(classNames.mobileAvatar),
-            Span(resolvedUsername).id(elementIds.mobileUsername),
+            Span(() => resolvedUsername()).id(elementIds.mobileUsername),
           ).className(classNames.mobileProfile).style({ pointerEvents: 'none', cursor: 'default' }),
           Box().className(classNames.mobileDivider),
           Link('Profile').href('/user-panel').dataLink().className(classNames.mobileLink),

@@ -97,7 +97,7 @@ async function submitForgotPassword(values, pageState, ctx) {
 function FieldError({ field }) {
   return Paragraph()
     .className('bw-error')
-    .text(field.error);
+    .text(() => field.error.get());
 }
 
 function BloodwaveLabel(text, fieldId) {
@@ -252,20 +252,20 @@ const ForgotPassword = page({
                 SubmitButton(
                   ctx.form,
                   Box().className('bw-btn-shimmer'),
-                  Box().className('bw-btn-text').text(ctx.submit.label),
+                  Box().className('bw-btn-text').text(() => ctx.submit.label.get()),
                 )
                   .className('bw-btn')
-                  .bindClass('success', ctx.submit.success)
+                  .bindClass('success', () => ctx.submit.success.get())
                   .id('fpBtn'),
               ),
             )
               .form(ctx.form)
               .id('fpForm')
-              .bindStyle('display', ctx.transition.style.display)
-              .bindStyle('opacity', ctx.transition.style.opacity)
-              .bindStyle('pointerEvents', ctx.transition.style.pointerEvents)
-              .bindStyle('transform', ctx.transition.style.transform)
-              .bindStyle('transition', ctx.transition.style.transition),
+              .bindStyle('display', () => ctx.transition.style.display.get())
+              .bindStyle('opacity', () => ctx.transition.style.opacity.get())
+              .bindStyle('pointerEvents', () => ctx.transition.style.pointerEvents.get())
+              .bindStyle('transform', () => ctx.transition.style.transform.get())
+              .bindStyle('transition', () => ctx.transition.style.transition.get()),
             Box(
               Box(
                 Icon()
@@ -283,7 +283,7 @@ const ForgotPassword = page({
               Box().className('bw-success-sep'),
             )
               .className('bw-success-panel')
-              .bindClass('visible', ctx.transition.successVisible)
+              .bindClass('visible', () => ctx.transition.successVisible.get())
               .id('fpSuccess'),
             Divider(),
             FooterLink(),

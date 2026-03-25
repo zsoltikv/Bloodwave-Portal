@@ -85,7 +85,7 @@ async function submitLogin(values, submitState, ctx) {
 function FieldError({ field, style = null }) {
   return Paragraph()
     .className('bw-error')
-    .text(field.error)
+    .text(() => field.error.get())
     .when(style, (node) => node.style(style));
 }
 
@@ -283,12 +283,12 @@ const Login = page({
                   .with(bloodwavePasswordInput)
                   .id('lxPassword')
                   .field(passwordField)
-                  .type(ctx.password.visibility.inputType)
-                  .ariaInvalid(passwordField.invalid)
+                  .type(() => ctx.password.visibility.inputType.get())
+                  .ariaInvalid(() => passwordField.invalid.get())
                   .onEscape(() => ctx.password.visibility.revealed.set(false)),
                 PasswordToggle({
                   revealed: ctx.password.visibility.revealed,
-                  iconMarkup: ctx.password.visibility.icon,
+                  iconMarkup: () => ctx.password.visibility.icon.get(),
                   label: 'Toggle password visibility',
                 }),
                 Box().with(bloodwaveFieldLine),
@@ -302,16 +302,16 @@ const Login = page({
               RememberMeField(rememberMeField),
               Paragraph()
                 .className('bw-error')
-                .text(ctx.submit.error)
-                .showWhen(ctx.submit.error)
+                .text(() => ctx.submit.error.get())
+                .showWhen(() => ctx.submit.error.get())
                 .textAlign('center'),
               SubmitButton(
                 ctx.form,
                 Box().className('bw-btn-shimmer'),
-                Box().className('bw-btn-text').text(ctx.submit.label),
+                Box().className('bw-btn-text').text(() => ctx.submit.label.get()),
               )
                 .className('bw-btn')
-                .bindClass('success', ctx.submit.success)
+                .bindClass('success', () => ctx.submit.success.get())
                 .id('lxBtn'),
               Divider(),
               FooterLink(),

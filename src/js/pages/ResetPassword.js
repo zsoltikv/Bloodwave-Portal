@@ -139,7 +139,7 @@ async function submitResetPassword(values, pageState, ctx) {
 function FieldError({ field, style = null }) {
   return Paragraph()
     .className('bw-error')
-    .text(field.error)
+    .text(() => field.error.get())
     .when(style, (node) => node.style(style));
 }
 
@@ -335,16 +335,16 @@ const ResetPassword = page({
             Form(
               VStack(
                 Box(
-                  Input()
-                    .with(bloodwavePasswordInput)
-                    .id('rpPassword')
-                    .field(passwordField)
-                    .type(ctx.password.visibility.inputType)
-                    .ariaInvalid(passwordField.invalid)
-                    .onEscape(() => ctx.password.visibility.revealed.set(false)),
+                Input()
+                  .with(bloodwavePasswordInput)
+                  .id('rpPassword')
+                  .field(passwordField)
+                  .type(() => ctx.password.visibility.inputType.get())
+                  .ariaInvalid(() => passwordField.invalid.get())
+                  .onEscape(() => ctx.password.visibility.revealed.set(false)),
                   PasswordToggle({
                     revealed: ctx.password.visibility.revealed,
-                    iconMarkup: ctx.password.visibility.icon,
+                    iconMarkup: () => ctx.password.visibility.icon.get(),
                     label: 'Toggle new password visibility',
                   }),
                   Box().with(bloodwaveFieldLine),
@@ -356,16 +356,16 @@ const ResetPassword = page({
                     error: passwordField,
                   })),
                 Box(
-                  Input()
-                    .with(bloodwavePasswordInput)
-                    .id('rpConfirm')
-                    .field(confirmField)
-                    .type(ctx.confirmState.visibility.inputType)
-                    .ariaInvalid(confirmField.invalid)
-                    .onEscape(() => ctx.confirmState.visibility.revealed.set(false)),
+                Input()
+                  .with(bloodwavePasswordInput)
+                  .id('rpConfirm')
+                  .field(confirmField)
+                  .type(() => ctx.confirmState.visibility.inputType.get())
+                  .ariaInvalid(() => confirmField.invalid.get())
+                  .onEscape(() => ctx.confirmState.visibility.revealed.set(false)),
                   PasswordToggle({
                     revealed: ctx.confirmState.visibility.revealed,
-                    iconMarkup: ctx.confirmState.visibility.icon,
+                    iconMarkup: () => ctx.confirmState.visibility.icon.get(),
                     label: 'Toggle confirm password visibility',
                   }),
                   Box().with(bloodwaveFieldLine),
@@ -379,26 +379,26 @@ const ResetPassword = page({
                   })),
                 Paragraph()
                   .className('bw-error bw-error--center')
-                  .text(ctx.submit.error)
-                  .showWhen(ctx.submit.error),
+                  .text(() => ctx.submit.error.get())
+                  .showWhen(() => ctx.submit.error.get()),
                 SubmitButton(
                   ctx.form,
                   Box().className('bw-btn-shimmer'),
-                  Box().className('bw-btn-text').text(ctx.submit.label),
+                  Box().className('bw-btn-text').text(() => ctx.submit.label.get()),
                 )
                   .className('bw-btn')
-                  .bindClass('success', ctx.submit.success)
-                  .disabledWhen(ctx.meta.tokenMissing)
+                  .bindClass('success', () => ctx.submit.success.get())
+                  .disabledWhen(() => ctx.meta.tokenMissing.get())
                   .id('rpBtn'),
               ),
             )
               .form(ctx.form)
               .id('rpForm')
-              .bindStyle('display', ctx.transition.style.display)
-              .bindStyle('opacity', ctx.transition.style.opacity)
-              .bindStyle('pointerEvents', ctx.transition.style.pointerEvents)
-              .bindStyle('transform', ctx.transition.style.transform)
-              .bindStyle('transition', ctx.transition.style.transition),
+              .bindStyle('display', () => ctx.transition.style.display.get())
+              .bindStyle('opacity', () => ctx.transition.style.opacity.get())
+              .bindStyle('pointerEvents', () => ctx.transition.style.pointerEvents.get())
+              .bindStyle('transform', () => ctx.transition.style.transform.get())
+              .bindStyle('transition', () => ctx.transition.style.transition.get()),
             Box(
               Box(
                 Icon()
@@ -416,7 +416,7 @@ const ResetPassword = page({
               Box().className('bw-success-sep'),
             )
               .className('bw-success-panel')
-              .bindClass('visible', ctx.transition.successVisible)
+              .bindClass('visible', () => ctx.transition.successVisible.get())
               .id('rpSuccess'),
             Divider(),
             FooterLink(),

@@ -6,6 +6,9 @@ let stars = [];
 let started = false;
 let enabled = true;
 let resizeFrameId = 0;
+let resizeSettleTimeoutId = 0;
+let resizeActiveUntil = 0;
+let lastResizeDrawTime = 0;
 
 function measureCanvas() {
   if (!canvas || !ctx) return;
@@ -50,8 +53,18 @@ function initStars() {
   }
 }
 
-function draw() {
+function draw(now = performance.now()) {
   if (!ctx || !canvas) return;
+
+  const resizing = now < resizeActiveUntil;
+  if (resizing && now - lastResizeDrawTime < 33) {
+    requestAnimationFrame(draw);
+    return;
+  }
+
+  if (resizing) {
+    lastResizeDrawTime = now;
+  }
 
   stars.forEach((s) => {
     s.x += s.vx;
@@ -68,6 +81,14 @@ function draw() {
     ctx.fillRect(0, 0, width, height);
 
     stars.forEach((s) => {
+      if (resizing) {
+        ctx.fillStyle = `rgba(255,230,150,${Math.min(1, s.opacity + 0.2)})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+        return;
+      }
+
       const glowRadius = s.r * 6;
       const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowRadius);
       glow.addColorStop(0, `rgba(212,175,55,${Math.min(1, s.opacity * 0.75)})`);
@@ -89,6 +110,29 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
+function handleResize() {
+  resizeActiveUntil = performance.now() + 180;
+
+  if (resizeFrameId) {
+    cancelAnimationFrame(resizeFrameId);
+  }
+
+  resizeFrameId = requestAnimationFrame(() => {
+    resizeFrameId = 0;
+    measureCanvas();
+  });
+
+  if (resizeSettleTimeoutId) {
+    clearTimeout(resizeSettleTimeoutId);
+  }
+
+  resizeSettleTimeoutId = setTimeout(() => {
+    resizeSettleTimeoutId = 0;
+    resizeActiveUntil = 0;
+    measureCanvas();
+  }, 200);
+}
+
 function createCanvas() {
   canvas = document.createElement('canvas');
   canvas.id = 'bw-global-starfield';
@@ -104,15 +148,7 @@ function createCanvas() {
   measureCanvas();
   initStars();
 
-  window.addEventListener('resize', () => {
-    if (resizeFrameId) {
-      cancelAnimationFrame(resizeFrameId);
-    }
-    resizeFrameId = requestAnimationFrame(() => {
-      resizeFrameId = 0;
-      measureCanvas();
-    });
-  });
+  window.addEventListener('resize', handleResize, { passive: true });
 }
 
 export function ensureGlobalStarfield() {
