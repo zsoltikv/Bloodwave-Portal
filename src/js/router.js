@@ -1,4 +1,5 @@
 import { isLoggedIn } from './auth.js';
+import { createRouter } from './feather/index.js';
 import { ensureGlobalStarfield, setGlobalStarfieldEnabled } from './global-starfield.js';
 
 const PROTECTED_PATHS = ['/main', '/stats', '/leaderboard', '/achievements', '/user-panel'];
@@ -6,12 +7,6 @@ const GUEST_ONLY_PATHS = ['/login', '/register', '/forgot-password', '/reset-pas
 const FOOTER_VISIBLE_PATHS = ['/main', '/stats', '/leaderboard', '/achievements', '/user-panel'];
 const STARFIELD_PATHS = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/tos', '/android-download', '/main', '/stats', '/leaderboard', '/achievements', '/user-panel'];
 const GITHUB_PROJECT_URL = 'https://github.com/zsoltikv/Project-Bloodwave-Web';
-
-function forceScrollTop() {
-  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
-}
 
 function createGlobalFooter(loggedIn) {
   const footer = document.createElement('footer');
@@ -50,89 +45,56 @@ function createGlobalFooter(loggedIn) {
   return footer;
 }
 
-class Router {
-  constructor(routes) {
-    this.routes = routes;
-    this.currentRoute = null;
-    ensureGlobalStarfield();
+function resolveAppRoute(path) {
+  const loggedIn = isLoggedIn();
 
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual';
-    }
-    
-    // Handle initial load
-    window.addEventListener('DOMContentLoaded', (e) => {
-      e.preventDefault();
-      this.handleRoute();
-    });
-    
-    // Handle browser back/forward
-    window.addEventListener('popstate', (e) => {
-      this.handleRoute();
-    });
-    
-    // Intercept link clicks
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('[data-link]');
-      if (!link) return;
-
-      e.preventDefault();
-      const href = link.getAttribute('href');
-      if (!href) return;
-
-      this.navigate(href);
-    });
+  if (PROTECTED_PATHS.includes(path) && !loggedIn) {
+    return '/login';
   }
-  
-  navigate(path) {
-    window.history.pushState(null, null, path);
-    this.handleRoute();
+
+  if (GUEST_ONLY_PATHS.includes(path) && loggedIn) {
+    return '/main';
   }
-  
-  handleRoute() {
-    const path    = window.location.pathname;
-    const loggedIn = isLoggedIn();
 
-    // Guard: protected page without a session → login
-    if (PROTECTED_PATHS.includes(path) && !loggedIn) {
-      window.history.replaceState(null, null, '/login');
-      return this.handleRoute();
-    }
-
-    // Guard: already logged-in user hits a guest-only page → main
-    if (GUEST_ONLY_PATHS.includes(path) && loggedIn) {
-      window.history.replaceState(null, null, '/main');
-      return this.handleRoute();
-    }
-
-    // Unknown path → login (or main if logged in, handled by the guard above on next call)
-    const route = this.routes.find(r => r.path === path)
-               || this.routes.find(r => r.path === '/login');
-
-    setGlobalStarfieldEnabled(STARFIELD_PATHS.includes(path));
-    
-    if (route) {
-      this.currentRoute = route;
-      const app = document.getElementById('app');
-      app.setAttribute('data-route', route.path);
-      const showFooter = FOOTER_VISIBLE_PATHS.includes(route.path);
-      app.setAttribute('data-has-footer', String(showFooter));
-      app.innerHTML = '';
-
-      const routeView = document.createElement('div');
-      routeView.className = 'bw-route-view';
-      app.appendChild(routeView);
-
-      route.component(routeView);
-
-      if (showFooter) {
-        app.appendChild(createGlobalFooter(loggedIn));
-      }
-
-      forceScrollTop();
-      requestAnimationFrame(() => forceScrollTop());
-    }
-  }
+  return path;
 }
 
-export default Router;
+export default function createAppRouter(routes) {
+  const root = document.getElementById('app');
+
+  ensureGlobalStarfield();
+
+  return createRouter({
+    root,
+    routes,
+    notFoundPath: '/login',
+    beforeResolve({ path }) {
+      const resolvedPath = resolveAppRoute(path);
+      setGlobalStarfieldEnabled(STARFIELD_PATHS.includes(resolvedPath));
+      return resolvedPath;
+    },
+    afterRender({ path, route, root: appRoot }) {
+      const loggedIn = isLoggedIn();
+      const showFooter = FOOTER_VISIBLE_PATHS.includes(route.path);
+
+      appRoot.setAttribute('data-route', route.path);
+      appRoot.setAttribute('data-has-footer', String(showFooter));
+
+      const routeView = appRoot.querySelector('.feather-route-view');
+      if (routeView) {
+        routeView.className = 'bw-route-view';
+      }
+
+      const existingFooter = appRoot.querySelector('.bw-site-footer');
+      if (existingFooter) {
+        existingFooter.remove();
+      }
+
+      if (showFooter) {
+        appRoot.appendChild(createGlobalFooter(loggedIn));
+      }
+
+      setGlobalStarfieldEnabled(STARFIELD_PATHS.includes(path));
+    },
+  });
+}

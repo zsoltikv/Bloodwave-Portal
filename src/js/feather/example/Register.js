@@ -19,8 +19,6 @@ import {
   createForm,
   page,
   signal,
-  setupGroup,
-  setupState,
 } from '../feather/index.js';
 
 const PASSWORD_PLACEHOLDER = '\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7';
@@ -52,6 +50,8 @@ const STRENGTH_GLOWS = [
   '0 0 12px rgba(39,174,96,0.85), 0 0 30px rgba(39,174,96,0.45)',
 ];
 
+// Password strength is intentionally simple:
+// length + uppercase + number + symbol.
 function getStrength(password) {
   let score = 0;
   if (password.length >= 6) score += 1;
@@ -62,6 +62,8 @@ function getStrength(password) {
   return score;
 }
 
+// The original page had floating particles, so we keep them as plain data
+// and let the view render them from Feather components.
 function createParticles(count = 18) {
   return Array.from({ length: count }, () => {
     const size = Math.random() * 2.2 + 0.4;
@@ -89,6 +91,7 @@ function createParticles(count = 18) {
   });
 }
 
+// Validation is kept in one place so the form setup stays easy to scan.
 function validateRegister(values) {
   const errors = {
     username: '',
@@ -131,8 +134,9 @@ function validateRegister(values) {
   return errors;
 }
 
-async function submitRegister(values, submitState, ctx) {
-  submitState.success.set(false);
+// This helper keeps the submit path tiny inside setup().
+async function submitRegister(values, submitSuccess) {
+  submitSuccess.set(false);
 
   await register(
     values.username.trim(),
@@ -140,10 +144,11 @@ async function submitRegister(values, submitState, ctx) {
     values.password,
   );
 
-  submitState.success.set(true);
-  ctx.timeout(() => window.router.navigate('/login'), 900, 'lifetime');
+  submitSuccess.set(true);
+  setTimeout(() => window.router.navigate('/login'), 900);
 }
 
+// Feather can bind `field.error` directly, so this stays very small.
 function FieldError({ field, style = null }) {
   return Paragraph()
     .className('bw-error')
@@ -151,6 +156,7 @@ function FieldError({ field, style = null }) {
     .when(style, (node) => node.style(style));
 }
 
+// Password toggle is just a button + icon + one signal flip.
 function PasswordToggle({ revealed, iconMarkup, label }) {
   return Button(
     Icon()
@@ -175,7 +181,8 @@ function BloodwaveLabel(text, fieldId) {
     .attr('for', fieldId);
 }
 
-const bloodwaveInput = (node) => node.className('bw-input');
+const bloodwaveInput = (node) => node
+    .className('bw-input');
 
 const bloodwavePasswordInput = (node) => node
   .with(bloodwaveInput)
@@ -250,6 +257,7 @@ function FooterLink() {
   ).className('bw-footer-link');
 }
 
+// Both password fields share the same "show/hide" and computed icon/type logic.
 function createPasswordVisibilityState(field) {
   const revealed = field.state('revealed', false);
 
@@ -260,20 +268,17 @@ function createPasswordVisibilityState(field) {
   };
 }
 
-function createPasswordStrengthState(passwordField, ctx) {
+// The main password field also owns the strength meter animation state.
+function createPasswordStrengthState(passwordField) {
   const pulse = passwordField.state('strengthPulse', false);
   const lastScore = passwordField.state('strengthLast', -1);
+  const timer = passwordField.memo('strengthTimer', () => ({ id: null }));
   const strength = computed(() => {
     const value = passwordField.value.get() || '';
     return value.length ? getStrength(value) : 0;
   });
-  let cancelPulse = null;
 
-  ctx.cleanup(() => {
-    cancelPulse?.();
-  }, 'lifetime');
-
-  ctx.watch(passwordField.value, (nextValue = '') => {
+  function pulseStrength(nextValue) {
     const nextScore = nextValue.length ? getStrength(nextValue) : 0;
     if (nextScore === lastScore.get()) {
       return;
@@ -281,34 +286,38 @@ function createPasswordStrengthState(passwordField, ctx) {
 
     lastScore.set(nextScore);
 
-    cancelPulse?.();
+    if (timer.id) {
+      clearTimeout(timer.id);
+    }
 
     pulse.set(true);
-    cancelPulse = ctx.timeout(() => {
+    timer.id = setTimeout(() => {
       pulse.set(false);
-      cancelPulse = null;
-    }, 260, 'lifetime');
-  }, {
-    immediate: false,
-    scope: 'lifetime',
-  });
+    }, 260);
+  }
 
   return {
     active: computed(() => strength.get() > 0),
     pulse,
     gradient: computed(() => STRENGTH_GRADIENTS[strength.get()]),
     glow: computed(() => STRENGTH_GLOWS[strength.get()]),
+    pulseStrength,
   };
 }
 
 const Register = page({
   name: 'Register',
 
-  setup(ctx) {
+  setup() {
+    // The auth pages always expect the shared starfield to exist.
     ensureGlobalStarfield();
 
+    // Success state is separate from `form.submitting` so we can show the
+    // short "Account Created" success label before redirecting.
+    const submitSuccess = signal(false);
     const particles = createParticles();
 
+    // Feather's form helper owns values, touched state, errors, and submit state.
     const form = createForm({
       initial: {
         username: '',
@@ -324,54 +333,59 @@ const Register = page({
         },
       ],
       validate: validateRegister,
-      submit: (values) => submitRegister(values, submitState, ctx),
+      submit: (values) => submitRegister(values, submitSuccess),
     });
 
+    // Pull field objects once in setup so the rest of the file can reuse them.
     const usernameField = form.field('username');
     const emailField = form.field('email');
     const passwordField = form.field('password');
     const confirmField = form.field('confirm');
     const tosField = form.field('tos');
 
-    const submitState = {
-      success: signal(false),
-    };
+    const passwordVisibility = createPasswordVisibilityState(passwordField);
+    const confirmVisibility = createPasswordVisibilityState(confirmField);
+    const passwordStrength = createPasswordStrengthState(passwordField);
 
-    const submit = {
-      ...submitState,
-      label: computed(() => {
-        if (submitState.success.get()) return '\u2726  Account Created  \u2726';
-        if (form.submitting.get()) return '\u2726  Creating\u2026  \u2726';
-        return 'Create Account';
-      }),
-      error: computed(() => form.submitError.get()?.message || ''),
-    };
+    // These computed values drive the small bits of UI state in the template.
+    const submitLabel = computed(() => {
+      if (submitSuccess.get()) return '\u2726  Account Created  \u2726';
+      if (form.submitting.get()) return '\u2726  Creating\u2026  \u2726';
+      return 'Create Account';
+    });
+    const formError = computed(() => form.submitError.get()?.message || '');
 
-    const password = {
-      visibility: createPasswordVisibilityState(passwordField),
-      strength: createPasswordStrengthState(passwordField, ctx),
-    };
+    // Shared field updater for text inputs.
+    function updateField(field, value) {
+      field.set(value);
+      field.touch();
+    }
 
-    const confirm = {
-      visibility: createPasswordVisibilityState(confirmField),
-    };
+    // Password input needs one extra step: update the strength line pulse.
+    function updatePassword(value) {
+      updateField(passwordField, value);
+      passwordStrength.pulseStrength(value);
+    }
 
-    return setupState(
-      {
-        form,
-        particles,
-      },
-      setupGroup('fields', {
+    return {
+      form,
+      particles,
+      fields: {
         username: usernameField,
         email: emailField,
         password: passwordField,
         confirm: confirmField,
         tos: tosField,
-      }),
-      setupGroup('password', password),
-      setupGroup('confirmState', confirm),
-      setupGroup('submit', submit),
-    );
+      },
+      passwordVisibility,
+      confirmVisibility,
+      passwordStrength,
+      submitSuccess,
+      submitLabel,
+      formError,
+      updateField,
+      updatePassword,
+    };
   },
 
   render(ctx) {
@@ -386,12 +400,14 @@ const Register = page({
     return Box(
       Box().className('bw-glow-center'),
       ...ctx.particles.map(bloodwaveParticles),
+
       Box(
         Box(
           Box().className('bw-corner bw-corner--tl'),
           Box().className('bw-corner bw-corner--tr'),
           Box().className('bw-corner bw-corner--bl'),
           Box().className('bw-corner bw-corner--br'),
+
           Box(
             Box(
               Box().className('bw-ornament-line'),
@@ -401,6 +417,7 @@ const Register = page({
             Title('Bloodwave').className('bw-title'),
             Subtitle('Join\u00A0\u00A0The\u00A0\u00A0Covenant').className('bw-subtitle'),
           ).className('bw-header'),
+
           Form(
             VStack(
               Box(
@@ -418,6 +435,7 @@ const Register = page({
                   fieldId: 'rxName',
                   error: usernameField,
                 })),
+
               Box(
                 Input()
                   .with(bloodwaveInput)
@@ -434,20 +452,22 @@ const Register = page({
                   fieldId: 'rxEmail',
                   error: emailField,
                 })),
+
               Box(
                 Input()
                   .with(bloodwavePasswordInput)
                   .id('rxPassword')
-                  .field(passwordField)
-                  .type(ctx.password.visibility.inputType)
+                  .type(ctx.passwordVisibility.inputType)
+                  .value(passwordField.value)
                   .ariaInvalid(passwordField.invalid)
-                  .onEscape(() => ctx.password.visibility.revealed.set(false)),
+                  .onInput((event) => ctx.updatePassword(event.target.value))
+                  .onEscape(() => ctx.passwordVisibility.revealed.set(false)),
                 PasswordToggle({
-                  revealed: ctx.password.visibility.revealed,
-                  iconMarkup: ctx.password.visibility.icon,
+                  revealed: ctx.passwordVisibility.revealed,
+                  iconMarkup: ctx.passwordVisibility.icon,
                   label: 'Toggle password visibility',
                 }),
-                PasswordStrengthLine(ctx.password.strength),
+                PasswordStrengthLine(ctx.passwordStrength),
               )
                 .with(bloodwaveFieldWrap)
                 .with(bloodwaveField({
@@ -455,17 +475,19 @@ const Register = page({
                   fieldId: 'rxPassword',
                   error: passwordField,
                 })),
+
               Box(
                 Input()
                   .with(bloodwavePasswordInput)
                   .id('rxConfirm')
-                  .field(confirmField)
-                  .type(ctx.confirmState.visibility.inputType)
+                  .type(ctx.confirmVisibility.inputType)
+                  .value(confirmField.value)
                   .ariaInvalid(confirmField.invalid)
-                  .onEscape(() => ctx.confirmState.visibility.revealed.set(false)),
+                  .onInput((event) => ctx.updateField(confirmField, event.target.value))
+                  .onEscape(() => ctx.confirmVisibility.revealed.set(false)),
                 PasswordToggle({
-                  revealed: ctx.confirmState.visibility.revealed,
-                  iconMarkup: ctx.confirmState.visibility.icon,
+                  revealed: ctx.confirmVisibility.revealed,
+                  iconMarkup: ctx.confirmVisibility.icon,
                   label: 'Toggle confirm password visibility',
                 }),
                 Box().with(bloodwaveFieldLine),
@@ -478,21 +500,25 @@ const Register = page({
                   className: 'bw-field bw-field--confirm',
                   margin: { bottom: 'clamp(10px, 2vw, 14px)' },
                 })),
+
               TermsField(tosField),
+
               Paragraph()
                 .className('bw-error')
-                .text(ctx.submit.error)
-                .showWhen(ctx.submit.error)
+                .text(ctx.formError)
+                .showWhen(ctx.formError)
                 .textAlign('center')
                 .margin({ top: '0', bottom: '14px' }),
+
               SubmitButton(
                 ctx.form,
                 Box().className('bw-btn-shimmer'),
-                Box().className('bw-btn-text').text(ctx.submit.label),
+                Box().className('bw-btn-text').text(ctx.submitLabel),
               )
                 .className('bw-btn')
-                .bindClass('success', ctx.submit.success)
+                .bindClass('success', ctx.submitSuccess)
                 .id('rxBtn'),
+
               Divider(),
               FooterLink(),
             ),

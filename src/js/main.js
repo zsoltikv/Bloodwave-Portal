@@ -65,8 +65,9 @@ const routes = [
 ];
 
 // Initialize router
-const router = new Router(routes);
+const router = Router(routes);
 ensureCustomCursor();
 
 // Make router globally accessible
 window.router = router;
+router.start();

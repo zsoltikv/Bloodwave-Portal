@@ -1,228 +1,286 @@
 import '../../css/pages/ForgotPassword.css';
 import { ensureGlobalStarfield } from '../global-starfield.js';
 import { API_BASE } from '../auth.js';
-export default function ForgotPassword(container) {
-  container.innerHTML = `
-    <div class="bw-root">
-      <div class="bw-glow-center"></div>
+import {
+  Box,
+  Form,
+  Icon,
+  Input,
+  Label,
+  Link,
+  Paragraph,
+  SubmitButton,
+  Subtitle,
+  Title,
+  VStack,
+  computed,
+  createForm,
+  page,
+  signal,
+  setupGroup,
+  setupState,
+} from '../feather/index.js';
 
-      <div class="bw-card">
-        <div class="bw-card-inner">
-          <div class="bw-corner bw-corner--tl"></div>
-          <div class="bw-corner bw-corner--tr"></div>
-          <div class="bw-corner bw-corner--bl"></div>
-          <div class="bw-corner bw-corner--br"></div>
+const SUCCESS_ICON = `
+  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+`;
 
-          <div class="bw-header">
-            <div class="bw-ornament">
-              <div class="bw-ornament-line"></div>
-              <div class="bw-ornament-diamond"></div>
-              <div class="bw-ornament-line"></div>
-            </div>
-            <h1 class="bw-title">Bloodwave</h1>
-            <p class="bw-subtitle">Restore&nbsp;&nbsp;Your&nbsp;&nbsp;Access</p>
-          </div>
+function createParticles(count = 18) {
+  return Array.from({ length: count }, () => {
+    const size = Math.random() * 2.2 + 0.4;
+    const delay = Math.random() * 20;
+    const duration = 18 + Math.random() * 22;
+    const drift = (Math.random() - 0.5) * 90;
+    const isRed = Math.random() < 0.28;
+    const isGold = !isRed && Math.random() < 0.15;
+    const background = isRed
+      ? 'rgba(192,57,43,0.55)'
+      : isGold
+        ? 'rgba(212,175,55,0.4)'
+        : 'rgba(255,230,210,0.28)';
 
-          <div class="bw-form" id="fpFormWrap">
-
-            <p class="bw-desc">
-              Enter your email address and we will send<br>
-              you a link to reset your password.
-            </p>
-
-            <form id="fpForm" novalidate>
-              <div class="bw-field">
-                <label class="bw-label" for="fpEmail">Email Address</label>
-                <div class="bw-input-wrap">
-                  <input type="email" id="fpEmail" class="bw-input" placeholder="your@email.com" required autocomplete="email" />
-                  <div class="bw-input-line"></div>
-                </div>
-                <span class="bw-error" id="fpEmailError"></span>
-              </div>
-
-              <button type="submit" class="bw-btn" id="fpBtn">
-                <div class="bw-btn-shimmer"></div>
-                <span class="bw-btn-text">Send Reset Link</span>
-              </button>
-            </form>
-
-            <!-- Success state (hidden until submit) -->
-            <div class="bw-success-panel" id="fpSuccess">
-              <div class="bw-success-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                </svg>
-              </div>
-              <p class="bw-success-title">Check Your Inbox</p>
-              <p class="bw-success-text">
-                If an account exists for that address,<br>
-                a reset link is on its way.
-              </p>
-              <div class="bw-success-sep"></div>
-            </div>
-
-            <div class="bw-divider">
-              <div class="bw-divider-line"></div>
-              <span class="bw-divider-text">or</span>
-              <div class="bw-divider-line"></div>
-            </div>
-
-            <div class="bw-footer-link">
-              <p>Remembered it? <a href="/login" data-link class="bw-forgot">Sign In</a></p>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  ensureGlobalStarfield();
-
-  const form       = document.getElementById('fpForm');
-  const btn        = document.getElementById('fpBtn');
-  const emailInput = document.getElementById('fpEmail');
-  const emailError = document.getElementById('fpEmailError');
-  const successPanel = document.getElementById('fpSuccess');
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    emailError.textContent = '';
-
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailInput.value.trim()) {
-      emailError.textContent = 'Email is required';
-      return;
-    }
-    if (!emailRe.test(emailInput.value.trim())) {
-      emailError.textContent = 'Invalid email address';
-      return;
-    }
-
-    btn.classList.add('success');
-    btn.querySelector('.bw-btn-text').textContent = '✦  Sent  ✦';
-
-    // Example API call using API_BASE
-    try {
-      await fetch(`${API_BASE}/api/user/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailInput.value.trim() })
-      });
-    } catch (err) {
-      // Optionally handle error
-      console.error('API error:', err);
-    }
-
-    setTimeout(() => {
-      form.style.cssText = 'opacity:0; pointer-events:none; transform:translateY(-8px); transition:opacity 0.35s ease, transform 0.35s ease;';
-      setTimeout(() => {
-        form.style.display = 'none';
-        successPanel.classList.add('visible');
-      }, 370);
-    }, 650);
+    return {
+      width: `${size}px`,
+      height: `${size}px`,
+      left: `${Math.random() * 100}%`,
+      bottom: '-12px',
+      background,
+      animationDuration: `${duration}s`,
+      animationDelay: `${delay}s`,
+      '--drift': `${drift}px`,
+    };
   });
 }
 
-/* ============================================================
-   CANVAS – same starry background as Main page
-   ============================================================ */
-function initFpCanvas() {
-  const canvas = document.getElementById('fp-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
+function validateForgotPassword(values) {
+  const errors = { email: '' };
+  const email = values.email.trim();
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  let W, H;
-  let stars = [];
-
-  function measure() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+  if (!email) {
+    errors.email = 'Email is required';
+  } else if (!emailRe.test(email)) {
+    errors.email = 'Invalid email address';
   }
 
-  function initStars() {
-    stars = [];
-    for (let i = 0; i < 85; i++) {
-      stars.push({
-        x: Math.random() * W,
-        y: Math.random() * H,
-        r: Math.random() * 1.3 + 0.3,
-        opacity: Math.random() * 0.6 + 0.2,
-        vx: (Math.random() - 0.5) * 0.15,
-        vy: (Math.random() - 0.5) * 0.15,
-      });
-    }
+  return errors;
+}
+
+async function submitForgotPassword(values, pageState, ctx) {
+  pageState.submit.success.set(false);
+  pageState.transition.formLeaving.set(false);
+  pageState.transition.formHidden.set(false);
+  pageState.transition.successVisible.set(false);
+
+  try {
+    await fetch(`${API_BASE}/api/user/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: values.email.trim() }),
+    });
+  } catch (err) {
+    console.error('API error:', err);
   }
 
-  function anim() {
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = 'rgb(8,6,6)';
-    ctx.fillRect(0, 0, W, H);
+  pageState.submit.success.set(true);
 
-    stars.forEach(s => {
-      s.x += s.vx;
-      s.y += s.vy;
-      if (s.x < 0) s.x = W;
-      if (s.x > W) s.x = 0;
-      if (s.y < 0) s.y = H;
-      if (s.y > H) s.y = 0;
+  ctx.timeout(() => {
+    pageState.transition.formLeaving.set(true);
+    ctx.timeout(() => {
+      pageState.transition.formHidden.set(true);
+      pageState.transition.successVisible.set(true);
+    }, 370, 'lifetime');
+  }, 650, 'lifetime');
+}
 
-      const glowRadius = s.r * 6;
-      const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowRadius);
-      glow.addColorStop(0, `rgba(212,175,55,${Math.min(1, s.opacity * 0.75)})`);
-      glow.addColorStop(0.35, `rgba(212,175,55,${s.opacity * 0.35})`);
-      glow.addColorStop(1, 'rgba(212,175,55,0)');
+function FieldError({ field }) {
+  return Paragraph()
+    .className('bw-error')
+    .text(field.error);
+}
 
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, glowRadius, 0, Math.PI * 2);
-      ctx.fill();
+function BloodwaveLabel(text, fieldId) {
+  return Label(text)
+    .className('bw-label')
+    .attr('for', fieldId);
+}
 
-      ctx.fillStyle = `rgba(255,230,150,${Math.min(1, s.opacity + 0.2)})`;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fill();
+const bloodwaveInput = (node) => node.className('bw-input');
+const bloodwaveParticles = (style) => Box().className('bw-particle').style(style);
+const bloodwaveFieldWrap = (node) => node.className('bw-input-wrap');
+const bloodwaveFieldLine = (node) => node.className('bw-input-line');
+
+const bloodwaveField = ({
+  label,
+  fieldId,
+  error,
+  className = 'bw-field',
+}) => (node) => VStack(
+  BloodwaveLabel(label, fieldId),
+  node,
+  FieldError({ field: error }),
+).className(className);
+
+function Divider() {
+  return Box(
+    Box().className('bw-divider-line'),
+    Box('or').className('bw-divider-text'),
+    Box().className('bw-divider-line'),
+  ).className('bw-divider');
+}
+
+function FooterLink() {
+  return Box(
+    Paragraph(
+      'Remembered it? ',
+      Link('Sign In')
+        .href('/login')
+        .dataLink()
+        .className('bw-forgot'),
+    ),
+  ).className('bw-footer-link');
+}
+
+const ForgotPassword = page({
+  name: 'ForgotPassword',
+
+  setup(ctx) {
+    ensureGlobalStarfield();
+
+    const particles = createParticles();
+    const submitState = {
+      success: signal(false),
+    };
+    const transition = {
+      formLeaving: signal(false),
+      formHidden: signal(false),
+      successVisible: signal(false),
+    };
+
+    const form = createForm({
+      initial: {
+        email: '',
+      },
+      validate: validateForgotPassword,
+      submit: (values) => submitForgotPassword(values, {
+        submit: submitState,
+        transition,
+      }, ctx),
     });
 
-    requestAnimationFrame(anim);
-  }
+    const emailField = form.field('email');
 
-  measure();
-  initStars();
-  anim();
+    const submit = {
+      ...submitState,
+      label: computed(() => {
+        if (submitState.success.get()) return '\u2726  Sent  \u2726';
+        if (form.submitting.get()) return 'Sending...';
+        return 'Send Reset Link';
+      }),
+      error: computed(() => form.submitError.get()?.message || ''),
+    };
 
-  window.addEventListener('resize', () => {
-    measure();
-    initStars();
-  });
-}
+    return setupState(
+      {
+        form,
+        particles,
+      },
+      setupGroup('fields', {
+        email: emailField,
+      }),
+      setupGroup('submit', submit),
+      setupGroup('transition', transition),
+    );
+  },
 
-function spawnFpParticles() {
-  const root = document.querySelector('.bw-root');
-  if (!root) return;
+  render(ctx) {
+    const emailField = ctx.fields.email;
 
-  for (let i = 0; i < 18; i++) {
-    const p        = document.createElement('div');
-    p.className    = 'bw-particle';
-    const size     = Math.random() * 2.2 + 0.4;
-    const delay    = Math.random() * 20;
-    const duration = 18 + Math.random() * 22;
-    const drift    = (Math.random() - 0.5) * 90;
-    const isRed    = Math.random() < 0.28;
-    const isGold   = !isRed && Math.random() < 0.15;
-    const col      = isRed  ? 'rgba(192,57,43,0.55)'
-                   : isGold ? 'rgba(212,175,55,0.4)'
-                   :          'rgba(255,230,210,0.28)';
+    return Box(
+      Box().className('bw-glow-center'),
+      ...ctx.particles.map(bloodwaveParticles),
+      Box(
+        Box(
+          Box().className('bw-corner bw-corner--tl'),
+          Box().className('bw-corner bw-corner--tr'),
+          Box().className('bw-corner bw-corner--bl'),
+          Box().className('bw-corner bw-corner--br'),
+          Box(
+            Box(
+              Box().className('bw-ornament-line'),
+              Box().className('bw-ornament-diamond'),
+              Box().className('bw-ornament-line'),
+            ).className('bw-ornament'),
+            Title('Bloodwave').className('bw-title'),
+            Subtitle('Restore\u00A0\u00A0Your\u00A0\u00A0Access').className('bw-subtitle'),
+          ).className('bw-header'),
+          Box(
+            Paragraph(
+              'Enter your email address and we will send',
+              Box().tag('br'),
+              'you a link to reset your password.',
+            ).className('bw-desc'),
+            Form(
+              VStack(
+                Box(
+                  Input()
+                    .with(bloodwaveInput)
+                    .id('fpEmail')
+                    .field(emailField)
+                    .type('email')
+                    .placeholder('your@email.com')
+                    .autocomplete('email'),
+                  Box().with(bloodwaveFieldLine),
+                )
+                  .with(bloodwaveFieldWrap)
+                  .with(bloodwaveField({
+                    label: 'Email Address',
+                    fieldId: 'fpEmail',
+                    error: emailField,
+                  })),
+                SubmitButton(
+                  ctx.form,
+                  Box().className('bw-btn-shimmer'),
+                  Box().className('bw-btn-text').text(ctx.submit.label),
+                )
+                  .className('bw-btn')
+                  .bindClass('success', ctx.submit.success)
+                  .id('fpBtn'),
+              ),
+            )
+              .form(ctx.form)
+              .id('fpForm')
+              .bindStyle('display', computed(() => (ctx.transition.formHidden.get() ? 'none' : 'block')))
+              .bindStyle('opacity', computed(() => (ctx.transition.formLeaving.get() ? '0' : '1')))
+              .bindStyle('pointerEvents', computed(() => (ctx.transition.formLeaving.get() ? 'none' : 'auto')))
+              .bindStyle('transform', computed(() => (ctx.transition.formLeaving.get() ? 'translateY(-8px)' : 'translateY(0)')))
+              .bindStyle('transition', computed(() => (ctx.transition.formLeaving.get() ? 'opacity 0.35s ease, transform 0.35s ease' : 'none'))),
+            Box(
+              Box(
+                Icon()
+                  .attrs({
+                    xmlns: 'http://www.w3.org/2000/svg',
+                    fill: 'none',
+                    viewBox: '0 0 24 24',
+                    stroke: 'currentColor',
+                    'stroke-width': '1.2',
+                  })
+                  .html(SUCCESS_ICON),
+              ).className('bw-success-icon'),
+              Paragraph('Check Your Inbox').className('bw-success-title'),
+              Paragraph('If an account exists for that address, a reset link is on its way.').className('bw-success-text'),
+              Box().className('bw-success-sep'),
+            )
+              .className('bw-success-panel')
+              .bindClass('visible', ctx.transition.successVisible)
+              .id('fpSuccess'),
+            Divider(),
+            FooterLink(),
+          ).className('bw-form').id('fpFormWrap'),
+        ).className('bw-card-inner'),
+      ).className('bw-card'),
+    ).className('bw-root');
+  },
+});
 
-    p.style.cssText = `
-      width:${size}px; height:${size}px;
-      left:${Math.random() * 100}%;
-      bottom:-12px;
-      background:${col};
-      animation-duration:${duration}s;
-      animation-delay:${delay}s;
-      --drift:${drift}px;
-    `;
-    root.appendChild(p);
-  }
-}
+export default ForgotPassword;

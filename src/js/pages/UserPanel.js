@@ -2,661 +2,642 @@ import '../../css/pages/UserPanel.css';
 import { API_BASE, getUser, logout, authFetch } from '../auth.js';
 import { confirmLogout, confirmDeleteAccount, showDeleteAccountError } from '../logout-confirm.js';
 import { ensureGlobalStarfield } from '../global-starfield.js';
+import {
+  Box,
+  Button,
+  Main,
+  Form,
+  Input,
+  Label,
+  Link,
+  Nav,
+  Span,
+  Subtitle,
+  Title,
+  page,
+  setupGroup,
+  setupState,
+} from '../feather/index.js';
 
-export default function UserPanel(container) {
-  const cachedUser = getUser();
-  const profileState = {
-    username: cachedUser?.username || '',
-    email: cachedUser?.email || '',
-    createdAt: cachedUser?.createdAt || ''
-  };
+const PASSWORD_PLACEHOLDER = '\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7';
 
-  container.innerHTML = `
-    
+function formatDate(dateStr) {
+  if (!dateStr || dateStr === 'N/A') return 'N/A';
 
-    <div class="up-root">
-      <div class="up-glow"></div>
-
-      <!-- === NAVBAR === -->
-      <nav class="up-nav">
-        <div class="up-nav-inner">
-          <a href="/" data-link class="up-logo">Bloodwave</a>
-          <div class="up-right">
-            <a href="/main" data-link class="up-nav-link" id="upBackToDashboard">Back to Dashboard</a>
-            <button class="up-hamburger" id="up-hamburger" aria-label="Toggle menu" aria-expanded="false">
-              <span class="up-bar"></span>
-              <span class="up-bar"></span>
-              <span class="up-bar"></span>
-            </button>
-          </div>
-        </div>
-
-        <div class="up-mobile-menu" id="up-mobile-menu">
-          <div class="up-mobile-menu-inner">
-            <a href="/main" data-link class="up-mobile-link">Matches</a>
-            <a href="/stats" data-link class="up-mobile-link">Stats</a>
-            <a href="/leaderboard" data-link class="up-mobile-link">Leaderboard</a>
-            <a href="/achievements" data-link class="up-mobile-link">Achievements</a>
-            <div class="up-mobile-divider"></div>
-            <div class="up-mobile-profile" style="pointer-events:none; cursor:default;">
-              <span class="up-mobile-avatar">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-                </svg>
-              </span>
-              <span id="up-mobile-username">—</span>
-            </div>
-            <div class="up-mobile-divider"></div>
-            <a href="/user-panel" data-link class="up-mobile-link">Profile</a>
-            <button class="up-mobile-logout" id="up-mobile-logout">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
-              </svg>
-              Logout
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <!-- === MAIN CONTENT === -->
-      <main class="up-content">
-        <div class="up-container">
-
-          <!-- HEADER -->
-          <div class="up-header">
-            <div class="up-ornament">
-              <div class="up-ornament-line"></div>
-              <div class="up-ornament-diamond"></div>
-              <div class="up-ornament-line"></div>
-            </div>
-            <h1 class="up-title">Your Profile</h1>
-            <p class="up-subtitle">Account&nbsp;&nbsp;Management</p>
-          </div>
-
-          <!-- INFO GRID -->
-          <div class="up-info-grid">
-            <div class="up-info-card">
-              <span class="up-info-label">👤 Username</span>
-              <span class="up-info-value" id="up-username-value">${escapeHtml(cachedUser?.username || 'N/A')}</span>
-            </div>
-
-            <div class="up-info-card">
-              <span class="up-info-label">✉ Email</span>
-              <span class="up-info-value" id="up-email-value">${escapeHtml(cachedUser?.email || 'N/A')}</span>
-            </div>
-
-            <div class="up-info-card">
-              <span class="up-info-label">📅 Member Since</span>
-              <span class="up-info-value" id="up-created-at-value">${formatDate(cachedUser?.createdAt || 'N/A')}</span>
-            </div>
-          </div>
-
-          <!-- DIVIDER -->
-          <div class="up-divider">
-            <div class="up-divider-line"></div>
-            <span class="up-divider-text">Settings</span>
-            <div class="up-divider-line"></div>
-          </div>
-
-          <!-- SETTINGS PANEL -->
-          <div class="up-settings-panel">
-            <div class="up-settings-title">Account Settings</div>
-            <div class="up-settings-buttons">
-              <button class="up-settings-btn up-settings-action" id="upEditUsername">
-                <span class="up-btn-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-                    <circle cx="12" cy="8" r="3.5"></circle>
-                    <path d="M5 19c1.8-3 4.2-4.5 7-4.5s5.2 1.5 7 4.5"></path>
-                  </svg>
-                </span>
-                <span class="up-btn-copy">
-                  <span class="up-btn-main">Edit Username</span>
-                  <span class="up-btn-sub">Update display name</span>
-                </span>
-              </button>
-              <button class="up-settings-btn up-settings-action" id="upEditEmail">
-                <span class="up-btn-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-                    <rect x="3.5" y="6.5" width="17" height="11" rx="2"></rect>
-                    <path d="M4.5 8l7.5 5.5L19.5 8"></path>
-                  </svg>
-                </span>
-                <span class="up-btn-copy">
-                  <span class="up-btn-main">Change Email</span>
-                  <span class="up-btn-sub">Set a new email address</span>
-                </span>
-              </button>
-              <button class="up-settings-btn up-settings-action" id="upEditPassword">
-                <span class="up-btn-icon" aria-hidden="true">
-                  <svg class="up-icon-lock" viewBox="0 0 24 24" role="presentation" focusable="false">
-                    <rect x="6" y="11" width="12" height="9" rx="2"></rect>
-                    <path d="M8 11V9a4 4 0 0 1 8 0v2"></path>
-                    <circle cx="12" cy="15.5" r="1"></circle>
-                  </svg>
-                </span>
-                <span class="up-btn-copy">
-                  <span class="up-btn-main">Change Password</span>
-                  <span class="up-btn-sub">Secure your account</span>
-                </span>
-              </button>
-            </div>
-          </div>
-
-          <!-- LOGOUT SECTION -->
-          <div class="up-logout-section">
-            <button class="up-logout-btn up-delete-btn" id="upDeleteAccount">✦ Delete Account ✦</button>
-            <button class="up-logout-btn up-delete-btn" id="upLogout">✦ Sign Out Now ✦</button>
-          </div>
-
-        </div>
-      </main>
-    </div>
-
-    <!-- === MODALS === -->
-
-    <!-- EDIT USERNAME MODAL -->
-    <div class="up-modal-overlay" id="upUsernameModal" style="display:none;">
-      <div class="up-modal-card">
-        <div class="up-modal-header">
-          <div class="up-modal-title">Edit Username</div>
-          <div class="up-modal-subtitle">Choose your new display name</div>
-        </div>
-        <form class="up-form" id="upUsernameForm">
-          <span class="up-form-error" id="upUsernameError"></span>
-          <div class="up-form-field">
-            <label class="up-form-label">New Username</label>
-            <input type="text" id="upUsernameInput" class="up-form-input" placeholder="your_username" autocomplete="off" />
-          </div>
-          <div class="up-form-actions">
-            <button type="submit" class="up-settings-btn">Update</button>
-            <button type="button" class="up-settings-btn up-btn-cancel" id="upUsernameCancel">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- EDIT EMAIL MODAL -->
-    <div class="up-modal-overlay" id="upEmailModal" style="display:none;">
-      <div class="up-modal-card">
-        <div class="up-modal-header">
-          <div class="up-modal-title">Change Email</div>
-          <div class="up-modal-subtitle">Update your email address</div>
-        </div>
-        <form class="up-form" id="upEmailForm">
-          <span class="up-form-error" id="upEmailError"></span>
-          <div class="up-form-field">
-            <label class="up-form-label">New Email</label>
-            <input type="email" id="upEmailInput" class="up-form-input" placeholder="your@email.com" autocomplete="off" />
-          </div>
-          <div class="up-form-actions">
-            <button type="submit" class="up-settings-btn">Update</button>
-            <button type="button" class="up-settings-btn up-btn-cancel" id="upEmailCancel">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- CHANGE PASSWORD MODAL -->
-    <div class="up-modal-overlay" id="upPasswordModal" style="display:none;">
-      <div class="up-modal-card">
-        <div class="up-modal-header">
-          <div class="up-modal-title">Change Password</div>
-          <div class="up-modal-subtitle">Secure your account</div>
-        </div>
-        <form class="up-form" id="upPasswordForm">
-          <span class="up-form-error" id="upPasswordError"></span>
-          <div class="up-form-field">
-            <label class="up-form-label">Current Password</label>
-            <input type="password" id="upPasswordCurrent" class="up-form-input" placeholder="············" autocomplete="off" />
-          </div>
-          <div class="up-form-field">
-            <label class="up-form-label">New Password</label>
-            <input type="password" id="upPasswordNew" class="up-form-input" placeholder="············" autocomplete="off" />
-          </div>
-          <div class="up-form-field">
-            <label class="up-form-label">Confirm Password</label>
-            <input type="password" id="upPasswordConfirm" class="up-form-input" placeholder="············" autocomplete="off" />
-          </div>
-          <div class="up-form-actions">
-            <button type="submit" class="up-settings-btn">Change</button>
-            <button type="button" class="up-settings-btn up-btn-cancel" id="upPasswordCancel">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  `;
-
-  // ========== HELPERS ==========
-  function escapeHtml(text) {
-    const span = document.createElement('span');
-    span.textContent = text;
-    return span.innerHTML;
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) {
+    return 'N/A';
   }
 
-  function formatDate(dateStr) {
-    if (!dateStr) return 'N/A';
-    const date = new Date(dateStr);
-    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-    return `${month} ${day}, ${year}`;
-  }
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
 
-  const mobileUsername = document.getElementById('up-mobile-username');
-  if (mobileUsername) {
-    mobileUsername.textContent = cachedUser?.username || cachedUser?.email || 'Member';
-  }
+  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+}
 
-  function applyUserToUi(userData) {
-    if (!userData) return;
+function ornament() {
+  return Box(
+    Box().className('up-ornament-line'),
+    Box().className('up-ornament-diamond'),
+    Box().className('up-ornament-line'),
+  ).className('up-ornament');
+}
 
-    profileState.username = userData.username || profileState.username;
-    profileState.email = userData.email || profileState.email;
-    profileState.createdAt = userData.createdAt || profileState.createdAt;
+function infoCard(label, value, id) {
+  return Box(
+    Span(label).className('up-info-label'),
+    Span(value).className('up-info-value').id(id),
+  ).className('up-info-card');
+}
 
-    const usernameEl = document.getElementById('up-username-value');
-    const emailEl = document.getElementById('up-email-value');
-    const createdAtEl = document.getElementById('up-created-at-value');
+function settingsButton(id, title, subtitle) {
+  return Button(
+    Span().className('up-btn-icon').attr('aria-hidden', 'true'),
+    Span(
+      Span(title).className('up-btn-main'),
+      Span(subtitle).className('up-btn-sub'),
+    ).className('up-btn-copy'),
+  )
+    .id(id)
+    .className('up-settings-btn up-settings-action');
+}
 
-    if (usernameEl) usernameEl.textContent = profileState.username || 'N/A';
-    if (emailEl) emailEl.textContent = profileState.email || 'N/A';
-    if (createdAtEl) createdAtEl.textContent = formatDate(profileState.createdAt || '');
+function modalField(field) {
+  return Box(
+    Label(field.label).className('up-form-label'),
+    Input()
+      .type(field.type || 'text')
+      .id(field.id)
+      .className('up-form-input')
+      .placeholder(field.placeholder)
+      .autocomplete(field.autocomplete || 'off'),
+  ).className('up-form-field');
+}
+
+function settingsModal({ id, title, subtitle, formId, errorId, fields, submitLabel, cancelId }) {
+  return Box(
+    Box(
+      Box(
+        Box(title).className('up-modal-title'),
+        Box(subtitle).className('up-modal-subtitle'),
+      ).className('up-modal-header'),
+      Form(
+        Span().className('up-form-error').id(errorId),
+        fields.map(modalField),
+        Box(
+          Button(submitLabel)
+            .type('submit')
+            .className('up-settings-btn'),
+          Button('Cancel')
+            .type('button')
+            .id(cancelId)
+            .className('up-settings-btn up-btn-cancel'),
+        ).className('up-form-actions'),
+      )
+        .id(formId)
+        .className('up-form'),
+    ).className('up-modal-card'),
+  )
+    .className('up-modal-overlay')
+    .id(id)
+    .style({ display: 'none' });
+}
+
+function createUserPanelView(user) {
+  const username = user?.username || 'N/A';
+  const email = user?.email || 'N/A';
+  const createdAt = formatDate(user?.createdAt || 'N/A');
+
+  return Box(
+    Box().className('up-glow'),
+    Nav(
+      Box(
+        Link('Bloodwave')
+          .href('/')
+          .dataLink()
+          .className('up-logo'),
+        Box(
+          Link('Back to Dashboard')
+            .href('/main')
+            .dataLink()
+            .className('up-nav-link')
+            .id('upBackToDashboard'),
+          Button(
+            Span().className('up-bar'),
+            Span().className('up-bar'),
+            Span().className('up-bar'),
+          )
+            .id('up-hamburger')
+            .className('up-hamburger')
+            .ariaLabel('Toggle menu')
+            .attr('aria-expanded', 'false'),
+        ).className('up-right'),
+      ).className('up-nav-inner'),
+      Box(
+        Box(
+          Link('Matches').href('/main').dataLink().className('up-mobile-link'),
+          Link('Stats').href('/stats').dataLink().className('up-mobile-link'),
+          Link('Leaderboard').href('/leaderboard').dataLink().className('up-mobile-link'),
+          Link('Achievements').href('/achievements').dataLink().className('up-mobile-link'),
+          Box().className('up-mobile-divider'),
+          Box(
+            Span('BW').className('up-mobile-avatar'),
+            Span('-').id('up-mobile-username'),
+          )
+            .className('up-mobile-profile')
+            .style({ pointerEvents: 'none', cursor: 'default' }),
+          Box().className('up-mobile-divider'),
+          Link('Profile').href('/user-panel').dataLink().className('up-mobile-link'),
+          Button('Logout')
+            .id('up-mobile-logout')
+            .className('up-mobile-logout'),
+        ).className('up-mobile-menu-inner'),
+      )
+        .className('up-mobile-menu')
+        .id('up-mobile-menu'),
+    ).className('up-nav'),
+    Main(
+      Box(
+        Box(
+          ornament(),
+          Title('Your Profile').className('up-title'),
+          Subtitle('Account\u00A0\u00A0Management').className('up-subtitle'),
+        ).className('up-header'),
+        Box(
+          infoCard('Username', username, 'up-username-value'),
+          infoCard('Email', email, 'up-email-value'),
+          infoCard('Member Since', createdAt, 'up-created-at-value'),
+        ).className('up-info-grid'),
+        Box(
+          Box().className('up-divider-line'),
+          Span('Settings').className('up-divider-text'),
+          Box().className('up-divider-line'),
+        ).className('up-divider'),
+        Box(
+          Box('Account Settings').className('up-settings-title'),
+          Box(
+            settingsButton('upEditUsername', 'Edit Username', 'Update display name'),
+            settingsButton('upEditEmail', 'Change Email', 'Set a new email address'),
+            settingsButton('upEditPassword', 'Change Password', 'Secure your account'),
+          ).className('up-settings-buttons'),
+        ).className('up-settings-panel'),
+        Box(
+          Button('Delete Account')
+            .id('upDeleteAccount')
+            .className('up-logout-btn up-delete-btn'),
+          Button('Sign Out Now')
+            .id('upLogout')
+            .className('up-logout-btn up-delete-btn'),
+        ).className('up-logout-section'),
+      ).className('up-container'),
+    ).className('up-content'),
+    settingsModal({
+      id: 'upUsernameModal',
+      title: 'Edit Username',
+      subtitle: 'Choose your new display name',
+      formId: 'upUsernameForm',
+      errorId: 'upUsernameError',
+      submitLabel: 'Update',
+      cancelId: 'upUsernameCancel',
+      fields: [
+        { label: 'New Username', id: 'upUsernameInput', placeholder: 'your_username' },
+      ],
+    }),
+    settingsModal({
+      id: 'upEmailModal',
+      title: 'Change Email',
+      subtitle: 'Update your email address',
+      formId: 'upEmailForm',
+      errorId: 'upEmailError',
+      submitLabel: 'Update',
+      cancelId: 'upEmailCancel',
+      fields: [
+        { label: 'New Email', id: 'upEmailInput', type: 'email', placeholder: 'your@email.com' },
+      ],
+    }),
+    settingsModal({
+      id: 'upPasswordModal',
+      title: 'Change Password',
+      subtitle: 'Secure your account',
+      formId: 'upPasswordForm',
+      errorId: 'upPasswordError',
+      submitLabel: 'Change',
+      cancelId: 'upPasswordCancel',
+      fields: [
+        { label: 'Current Password', id: 'upPasswordCurrent', type: 'password', placeholder: PASSWORD_PLACEHOLDER },
+        { label: 'New Password', id: 'upPasswordNew', type: 'password', placeholder: PASSWORD_PLACEHOLDER },
+        { label: 'Confirm Password', id: 'upPasswordConfirm', type: 'password', placeholder: PASSWORD_PLACEHOLDER },
+      ],
+    }),
+  ).className('up-root');
+}
+
+const UserPanel = page({
+  name: 'UserPanel',
+
+  setup() {
+    ensureGlobalStarfield();
+
+    const cachedUser = getUser();
+    const profileState = {
+      username: cachedUser?.username || '',
+      email: cachedUser?.email || '',
+      createdAt: cachedUser?.createdAt || '',
+    };
+
+    return setupState(
+      setupGroup('user', {
+        cached: cachedUser,
+        profile: profileState,
+      }),
+    );
+  },
+
+  render(ctx) {
+    return createUserPanelView(ctx.user.cached);
+  },
+
+  mount(ctx) {
+    const { container } = ctx;
+    const { cached, profile } = ctx.user;
+
+    const $ = (selector) => container.querySelector(selector);
+    const on = (target, eventName, handler, options) => {
+      if (!target) return;
+      target.addEventListener(eventName, handler, options);
+      ctx.cleanup(() => target.removeEventListener(eventName, handler, options), 'lifetime');
+    };
+
+    const mobileUsername = $('#up-mobile-username');
     if (mobileUsername) {
-      mobileUsername.textContent = profileState.username || profileState.email || 'Member';
-    }
-  }
-
-  async function updateCurrentUser(payload) {
-    const res = await authFetch(`${API_BASE}/api/User/me`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || 'Failed to update profile');
+      mobileUsername.textContent = cached?.username || cached?.email || 'Member';
     }
 
-    const updatedUser = await res.json();
-    applyUserToUi(updatedUser);
-    return updatedUser;
-  }
+    function applyUserToUi(userData) {
+      if (!userData) return;
 
-  async function fetchCurrentUser() {
-    try {
+      profile.username = userData.username || profile.username;
+      profile.email = userData.email || profile.email;
+      profile.createdAt = userData.createdAt || profile.createdAt;
+
+      const usernameEl = $('#up-username-value');
+      const emailEl = $('#up-email-value');
+      const createdAtEl = $('#up-created-at-value');
+
+      if (usernameEl) usernameEl.textContent = profile.username || 'N/A';
+      if (emailEl) emailEl.textContent = profile.email || 'N/A';
+      if (createdAtEl) createdAtEl.textContent = formatDate(profile.createdAt || '');
+      if (mobileUsername) {
+        mobileUsername.textContent = profile.username || profile.email || 'Member';
+      }
+    }
+
+    async function updateCurrentUser(payload) {
       const res = await authFetch(`${API_BASE}/api/User/me`, {
-        method: 'GET',
-        headers: { Accept: 'application/json' }
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        throw new Error(`Failed to load profile (${res.status})`);
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || 'Failed to update profile');
       }
 
-      const userData = await res.json();
-      applyUserToUi(userData);
-    } catch (err) {
-      console.error('Failed to fetch current user profile:', err);
-    }
-  }
-
-  const hamburger = document.getElementById('up-hamburger');
-  const mobileMenu = document.getElementById('up-mobile-menu');
-  let mobileMenuOpen = false;
-
-  hamburger?.addEventListener('click', () => {
-    mobileMenuOpen = !mobileMenuOpen;
-    hamburger.classList.toggle('open', mobileMenuOpen);
-    hamburger.setAttribute('aria-expanded', String(mobileMenuOpen));
-    mobileMenu.style.maxHeight = mobileMenuOpen ? mobileMenu.scrollHeight + 'px' : '0';
-  });
-
-  mobileMenu?.querySelectorAll('.up-mobile-link').forEach((link) => {
-    link.addEventListener('click', () => {
-      mobileMenuOpen = false;
-      hamburger?.classList.remove('open');
-      hamburger?.setAttribute('aria-expanded', 'false');
-      mobileMenu.style.maxHeight = '0';
-    });
-  });
-
-  // ========== CANVAS ANIMATION ==========
-  function initUpCanvas() {
-    const canvas = document.getElementById('up-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    let W, H;
-    let stars = [];
-
-    function measure() {
-      W = canvas.width  = window.innerWidth;
-      H = canvas.height = window.innerHeight;
+      const updatedUser = await res.json();
+      applyUserToUi(updatedUser);
+      return updatedUser;
     }
 
-    function initStars() {
-      stars = [];
-      for (let i = 0; i < 85; i++) {
-        stars.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          r: Math.random() * 1.3 + 0.3,
-          opacity: Math.random() * 0.6 + 0.2,
-          vx: (Math.random() - 0.5) * 0.15,
-          vy: (Math.random() - 0.5) * 0.15,
+    async function fetchCurrentUser() {
+      try {
+        const res = await authFetch(`${API_BASE}/api/User/me`, {
+          method: 'GET',
+          headers: { Accept: 'application/json' },
         });
+
+        if (!res.ok) {
+          throw new Error(`Failed to load profile (${res.status})`);
+        }
+
+        const userData = await res.json();
+        applyUserToUi(userData);
+      } catch (err) {
+        console.error('Failed to fetch current user profile:', err);
       }
     }
 
-    function anim() {
-      // Full clear each frame so stars remain points without motion trails.
-      ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = 'rgb(8,6,6)';
-      ctx.fillRect(0, 0, W, H);
+    const hamburger = $('#up-hamburger');
+    const mobileMenu = $('#up-mobile-menu');
+    let mobileMenuOpen = false;
 
-      stars.forEach(s => {
-        s.x += s.vx;
-        s.y += s.vy;
-        if (s.x < 0) s.x = W;
-        if (s.x > W) s.x = 0;
-        if (s.y < 0) s.y = H;
-        if (s.y > H) s.y = 0;
+    on(hamburger, 'click', () => {
+      if (!mobileMenu) return;
 
-        const glowRadius = s.r * 6;
-        const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowRadius);
-        glow.addColorStop(0, `rgba(212,175,55,${Math.min(1, s.opacity * 0.75)})`);
-        glow.addColorStop(0.35, `rgba(212,175,55,${s.opacity * 0.35})`);
-        glow.addColorStop(1, 'rgba(212,175,55,0)');
+      mobileMenuOpen = !mobileMenuOpen;
+      hamburger.classList.toggle('open', mobileMenuOpen);
+      hamburger.setAttribute('aria-expanded', String(mobileMenuOpen));
+      mobileMenu.style.maxHeight = mobileMenuOpen ? `${mobileMenu.scrollHeight}px` : '0';
+    });
 
-        ctx.fillStyle = glow;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, glowRadius, 0, Math.PI * 2);
-        ctx.fill();
+    mobileMenu?.querySelectorAll('.up-mobile-link').forEach((link) => {
+      on(link, 'click', () => {
+        mobileMenuOpen = false;
+        hamburger?.classList.remove('open');
+        hamburger?.setAttribute('aria-expanded', 'false');
+        if (mobileMenu) {
+          mobileMenu.style.maxHeight = '0';
+        }
+      });
+    });
 
-        ctx.fillStyle = `rgba(255,230,150,${Math.min(1, s.opacity + 0.2)})`;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fill();
+    function setupModal(modalId, triggerBtnId, cancelBtnId, formId, onSubmit) {
+      const modal = $(`#${modalId}`);
+      const trigger = $(`#${triggerBtnId}`);
+      const cancelBtn = $(`#${cancelBtnId}`);
+      const form = $(`#${formId}`);
+
+      on(trigger, 'click', () => {
+        if (!modal) return;
+        modal.style.display = 'flex';
+        form?.querySelector('input')?.focus();
       });
 
-      requestAnimationFrame(anim);
-    }
-
-    measure();
-    initStars();
-    anim();
-
-    window.addEventListener('resize', () => {
-      measure();
-      initStars();
-    });
-  }
-
-  // ========== MODAL SETUP ==========
-  function setupModal(modalId, triggerBtnId, cancelBtnId, formId, onSubmit) {
-    const modal = document.getElementById(modalId);
-    const btn = document.getElementById(triggerBtnId);
-    const cancelBtn = document.getElementById(cancelBtnId);
-    const form = document.getElementById(formId);
-
-    btn?.addEventListener('click', () => {
-      modal.style.display = 'flex';
-      const firstInput = form?.querySelector('input');
-      firstInput?.focus();
-    });
-
-    cancelBtn?.addEventListener('click', () => {
-      modal.style.display = 'none';
-      form?.reset();
-    });
-
-    modal?.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.style.display = 'none';
+      on(cancelBtn, 'click', () => {
+        if (modal) {
+          modal.style.display = 'none';
+        }
         form?.reset();
+      });
+
+      on(modal, 'click', (event) => {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+          form?.reset();
+        }
+      });
+
+      on(form, 'submit', onSubmit);
+    }
+
+    setupModal('upUsernameModal', 'upEditUsername', 'upUsernameCancel', 'upUsernameForm', async (event) => {
+      event.preventDefault();
+
+      const input = $('#upUsernameInput');
+      const errorEl = $('#upUsernameError');
+      const submitBtn = $('#upUsernameForm button[type="submit"]');
+      if (!input || !errorEl || !submitBtn) return;
+
+      errorEl.classList.remove('show');
+      errorEl.textContent = '';
+
+      const username = input.value.trim();
+      if (username.length < 3) {
+        errorEl.textContent = 'Username must be at least 3 characters';
+        errorEl.classList.add('show');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Updating...';
+
+      try {
+        await updateCurrentUser({
+          username,
+          email: profile.email,
+        });
+
+        submitBtn.textContent = 'Updated';
+        submitBtn.classList.add('success');
+        ctx.timeout(() => {
+          const modal = $('#upUsernameModal');
+          const form = $('#upUsernameForm');
+          if (modal) {
+            modal.style.display = 'none';
+          }
+          form?.reset();
+          submitBtn.textContent = originalText;
+          submitBtn.classList.remove('success');
+          submitBtn.disabled = false;
+        }, 700, 'lifetime');
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.add('show');
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
       }
     });
 
-    form?.addEventListener('submit', onSubmit);
-  }
+    setupModal('upEmailModal', 'upEditEmail', 'upEmailCancel', 'upEmailForm', async (event) => {
+      event.preventDefault();
 
-  // === USERNAME MODAL ===
-  setupModal('upUsernameModal', 'upEditUsername', 'upUsernameCancel', 'upUsernameForm', async (e) => {
-    e.preventDefault();
-    const input = document.getElementById('upUsernameInput');
-    const errorEl = document.getElementById('upUsernameError');
-    const submitBtn = document.querySelector('#upUsernameForm button[type="submit"]');
+      const input = $('#upEmailInput');
+      const errorEl = $('#upEmailError');
+      const submitBtn = $('#upEmailForm button[type="submit"]');
+      if (!input || !errorEl || !submitBtn) return;
 
-    errorEl.classList.remove('show');
-    errorEl.textContent = '';
+      errorEl.classList.remove('show');
+      errorEl.textContent = '';
 
-    const username = input.value.trim();
-    if (username.length < 3) {
-      errorEl.textContent = 'Username must be at least 3 characters';
-      errorEl.classList.add('show');
-      return;
-    }
+      const email = input.value.trim();
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    submitBtn.disabled = true;
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = '✦ Updating… ✦';
-
-    try {
-      await updateCurrentUser({
-        username,
-        email: profileState.email
-      });
-
-      submitBtn.textContent = '✦ Updated ✦';
-      submitBtn.classList.add('success');
-      setTimeout(() => {
-        document.getElementById('upUsernameModal').style.display = 'none';
-        document.getElementById('upUsernameForm')?.reset();
-        submitBtn.textContent = originalText;
-        submitBtn.classList.remove('success');
-        submitBtn.disabled = false;
-      }, 700);
-    } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.classList.add('show');
-      submitBtn.textContent = originalText;
-      submitBtn.disabled = false;
-    }
-  });
-
-  // === EMAIL MODAL ===
-  setupModal('upEmailModal', 'upEditEmail', 'upEmailCancel', 'upEmailForm', async (e) => {
-    e.preventDefault();
-    const input = document.getElementById('upEmailInput');
-    const errorEl = document.getElementById('upEmailError');
-    const submitBtn = document.querySelector('#upEmailForm button[type="submit"]');
-
-    errorEl.classList.remove('show');
-    errorEl.textContent = '';
-
-    const email = input.value.trim();
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRe.test(email)) {
-      errorEl.textContent = 'Invalid email address';
-      errorEl.classList.add('show');
-      return;
-    }
-
-    submitBtn.disabled = true;
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = '✦ Updating… ✦';
-
-    try {
-      await updateCurrentUser({
-        username: profileState.username,
-        email
-      });
-
-      submitBtn.textContent = '✦ Updated ✦';
-      submitBtn.classList.add('success');
-      setTimeout(() => {
-        document.getElementById('upEmailModal').style.display = 'none';
-        document.getElementById('upEmailForm')?.reset();
-        submitBtn.textContent = originalText;
-        submitBtn.classList.remove('success');
-        submitBtn.disabled = false;
-      }, 700);
-    } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.classList.add('show');
-      submitBtn.textContent = originalText;
-      submitBtn.disabled = false;
-    }
-  });
-
-  // === PASSWORD MODAL ===
-  setupModal('upPasswordModal', 'upEditPassword', 'upPasswordCancel', 'upPasswordForm', async (e) => {
-    e.preventDefault();
-    const newPass = document.getElementById('upPasswordNew');
-    const confirm = document.getElementById('upPasswordConfirm');
-    const errorEl = document.getElementById('upPasswordError');
-    const submitBtn = document.querySelector('#upPasswordForm button[type="submit"]');
-
-    errorEl.classList.remove('show');
-    errorEl.textContent = '';
-
-    let valid = true;
-    if (newPass.value.length < 6) {
-      errorEl.textContent = 'New password must be at least 6 characters';
-      valid = false;
-    } else if (newPass.value !== confirm.value) {
-      errorEl.textContent = 'Passwords do not match';
-      valid = false;
-    }
-
-    if (!valid) {
-      errorEl.classList.add('show');
-      return;
-    }
-
-    submitBtn.disabled = true;
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = '✦ Changing… ✦';
-
-    try {
-      await updateCurrentUser({
-        username: profileState.username,
-        email: profileState.email,
-        password: newPass.value
-      });
-
-      submitBtn.textContent = '✦ Changed ✦';
-      submitBtn.classList.add('success');
-      setTimeout(() => {
-        document.getElementById('upPasswordModal').style.display = 'none';
-        document.getElementById('upPasswordForm')?.reset();
-        submitBtn.textContent = originalText;
-        submitBtn.classList.remove('success');
-        submitBtn.disabled = false;
-      }, 700);
-    } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.classList.add('show');
-      submitBtn.textContent = originalText;
-      submitBtn.disabled = false;
-    }
-  });
-
-  // ========== LOGOUT ==========
-  const doLogout = async (button) => {
-    const confirmed = await confirmLogout();
-    if (!confirmed) return;
-
-    if (button) {
-      button.disabled = true;
-      if (button.id === 'upLogout') {
-        button.textContent = '✦ Goodbye… ✦';
-      } else {
-        button.innerHTML = '✦ Logging out… ✦';
-      }
-    }
-
-    try {
-      await logout();
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
-  };
-
-  document.getElementById('upLogout')?.addEventListener('click', async () => {
-    await doLogout(document.getElementById('upLogout'));
-  });
-
-  document.getElementById('up-mobile-logout')?.addEventListener('click', async () => {
-    await doLogout(document.getElementById('up-mobile-logout'));
-  });
-
-  const doDeleteAccount = async (button) => {
-    const expectedUsername = (profileState.username || cachedUser?.username || '').trim();
-    const confirmation = await confirmDeleteAccount(expectedUsername);
-    if (!confirmation || confirmation.confirmed !== true) return;
-
-    const originalText = button?.textContent || '';
-    if (button) {
-      button.disabled = true;
-      button.textContent = '✦ Deleting… ✦';
-    }
-
-    try {
-      const response = await authFetch(`${API_BASE}/api/User/me`, {
-        method: 'DELETE',
-        headers: {
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          password: confirmation.password,
-        }),
-        skipAutoLogout: true,
-      });
-
-      if (!response.ok) {
-        const errorPayload = await response.json().catch(() => ({}));
-        throw new Error(errorPayload?.message || 'Failed to delete account.');
+      if (!emailRe.test(email)) {
+        errorEl.textContent = 'Invalid email address';
+        errorEl.classList.add('show');
+        return;
       }
 
-      // Sikeres törlés - kijelentkeztetés
-      await logout();
-      return;
-    } catch (err) {
-      // HIBA - NEM logout, marad az oldalon
-      console.error('Delete account error:', err);
-      await showDeleteAccountError(
-        err?.message || 'Could not delete account. Please try again.',
-        'Please verify your username and password are correct.'
-      );
+      submitBtn.disabled = true;
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Updating...';
+
+      try {
+        await updateCurrentUser({
+          username: profile.username,
+          email,
+        });
+
+        submitBtn.textContent = 'Updated';
+        submitBtn.classList.add('success');
+        ctx.timeout(() => {
+          const modal = $('#upEmailModal');
+          const form = $('#upEmailForm');
+          if (modal) {
+            modal.style.display = 'none';
+          }
+          form?.reset();
+          submitBtn.textContent = originalText;
+          submitBtn.classList.remove('success');
+          submitBtn.disabled = false;
+        }, 700, 'lifetime');
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.add('show');
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+
+    setupModal('upPasswordModal', 'upEditPassword', 'upPasswordCancel', 'upPasswordForm', async (event) => {
+      event.preventDefault();
+
+      const newPass = $('#upPasswordNew');
+      const confirm = $('#upPasswordConfirm');
+      const errorEl = $('#upPasswordError');
+      const submitBtn = $('#upPasswordForm button[type="submit"]');
+      if (!newPass || !confirm || !errorEl || !submitBtn) return;
+
+      errorEl.classList.remove('show');
+      errorEl.textContent = '';
+
+      let valid = true;
+      if (newPass.value.length < 6) {
+        errorEl.textContent = 'New password must be at least 6 characters';
+        valid = false;
+      } else if (newPass.value !== confirm.value) {
+        errorEl.textContent = 'Passwords do not match';
+        valid = false;
+      }
+
+      if (!valid) {
+        errorEl.classList.add('show');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Changing...';
+
+      try {
+        await updateCurrentUser({
+          username: profile.username,
+          email: profile.email,
+          password: newPass.value,
+        });
+
+        submitBtn.textContent = 'Changed';
+        submitBtn.classList.add('success');
+        ctx.timeout(() => {
+          const modal = $('#upPasswordModal');
+          const form = $('#upPasswordForm');
+          if (modal) {
+            modal.style.display = 'none';
+          }
+          form?.reset();
+          submitBtn.textContent = originalText;
+          submitBtn.classList.remove('success');
+          submitBtn.disabled = false;
+        }, 700, 'lifetime');
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.add('show');
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+
+    const doLogout = async (button) => {
+      const confirmed = await confirmLogout();
+      if (!confirmed) return;
+
       if (button) {
-        button.disabled = false;
-        button.textContent = originalText;
+        button.disabled = true;
+        if (button.id === 'upLogout') {
+          button.textContent = 'Goodbye...';
+        } else {
+          button.innerHTML = 'Logging out...';
+        }
       }
-    }
-  };
 
-  document.getElementById('upDeleteAccount')?.addEventListener('click', async () => {
-    await doDeleteAccount(document.getElementById('upDeleteAccount'));
-  });
+      try {
+        await logout();
+      } catch (err) {
+        console.error('Logout error:', err);
+      }
+    };
 
-  document.getElementById('upBackToDashboard')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (window.router?.navigate) {
-      window.router.navigate('/main');
-      return;
-    }
-    window.location.href = '/main';
-  });
+    on($('#upLogout'), 'click', async () => {
+      await doLogout($('#upLogout'));
+    });
 
-  // ========== INIT ==========
-  ensureGlobalStarfield();
-  fetchCurrentUser();
-}
+    on($('#up-mobile-logout'), 'click', async () => {
+      await doLogout($('#up-mobile-logout'));
+    });
 
+    const doDeleteAccount = async (button) => {
+      const expectedUsername = (profile.username || cached?.username || '').trim();
+      const confirmation = await confirmDeleteAccount(expectedUsername);
+      if (!confirmation || confirmation.confirmed !== true) return;
+
+      const originalText = button?.textContent || '';
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'Deleting...';
+      }
+
+      try {
+        const response = await authFetch(`${API_BASE}/api/User/me`, {
+          method: 'DELETE',
+          headers: {
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            password: confirmation.password,
+          }),
+          skipAutoLogout: true,
+        });
+
+        if (!response.ok) {
+          const errorPayload = await response.json().catch(() => ({}));
+          throw new Error(errorPayload?.message || 'Failed to delete account.');
+        }
+
+        await logout();
+      } catch (err) {
+        console.error('Delete account error:', err);
+        await showDeleteAccountError(
+          err?.message || 'Could not delete account. Please try again.',
+          'Please verify your username and password are correct.',
+        );
+        if (button) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+    };
+
+    on($('#upDeleteAccount'), 'click', async () => {
+      await doDeleteAccount($('#upDeleteAccount'));
+    });
+
+    on($('#upBackToDashboard'), 'click', (event) => {
+      event.preventDefault();
+      if (window.router?.navigate) {
+        window.router.navigate('/main');
+        return;
+      }
+      window.location.href = '/main';
+    });
+
+    fetchCurrentUser();
+  },
+});
+
+export default UserPanel;
