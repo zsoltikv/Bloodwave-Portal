@@ -910,10 +910,10 @@ function buildPlayerStats(matches) {
 
   return {
     matchesPlayed,
-    totalDamageDealt,
-    totalDamageTaken,
-    totalEnemiesKilled,
-    totalCoinsCollected,
+    damageDealt: totalDamageDealt,
+    damageTaken: totalDamageTaken,
+    enemiesKilled: totalEnemiesKilled,
+    coinsCollected: totalCoinsCollected,
     totalMinutesLived: Math.round(totalDurationSeconds / 60),
     totalLevelsReached,
     bestMatchDamage,
