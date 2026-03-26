@@ -163,7 +163,7 @@ export default function UserPanel(container) {
           <div class="up-modal-subtitle">Choose your new display name</div>
         </div>
         <form class="up-form" id="upUsernameForm">
-          <span class="up-form-error" id="upUsernameError"></span>
+          <span class="up-form-error" id="upUsernameError" role="alert" aria-live="polite"></span>
           <div class="up-form-field">
             <label class="up-form-label">New Username</label>
             <input type="text" id="upUsernameInput" class="up-form-input" placeholder="your_username" autocomplete="off" />
@@ -184,7 +184,7 @@ export default function UserPanel(container) {
           <div class="up-modal-subtitle">Update your email address</div>
         </div>
         <form class="up-form" id="upEmailForm">
-          <span class="up-form-error" id="upEmailError"></span>
+          <span class="up-form-error" id="upEmailError" role="alert" aria-live="polite"></span>
           <div class="up-form-field">
             <label class="up-form-label">New Email</label>
             <input type="email" id="upEmailInput" class="up-form-input" placeholder="your@email.com" autocomplete="off" />
@@ -205,7 +205,7 @@ export default function UserPanel(container) {
           <div class="up-modal-subtitle">Secure your account</div>
         </div>
         <form class="up-form" id="upPasswordForm">
-          <span class="up-form-error" id="upPasswordError"></span>
+          <span class="up-form-error" id="upPasswordError" role="alert" aria-live="polite"></span>
           <div class="up-form-field">
             <label class="up-form-label">Current Password</label>
             <input type="password" id="upPasswordCurrent" class="up-form-input" placeholder="············" autocomplete="off" />
@@ -242,6 +242,18 @@ export default function UserPanel(container) {
     const month = months[date.getMonth()];
     const year = date.getFullYear();
     return `${month} ${day}, ${year}`;
+  }
+
+  function clearFormError(errorEl) {
+    if (!errorEl) return;
+    errorEl.classList.remove('show');
+    errorEl.textContent = '';
+  }
+
+  function showFormError(errorEl, message) {
+    if (!errorEl) return;
+    errorEl.textContent = message || 'Something went wrong. Please try again.';
+    errorEl.classList.add('show');
   }
 
   const mobileUsername = document.getElementById('up-mobile-username');
@@ -404,21 +416,25 @@ export default function UserPanel(container) {
     const btn = document.getElementById(triggerBtnId);
     const cancelBtn = document.getElementById(cancelBtnId);
     const form = document.getElementById(formId);
+    const errorEl = form?.querySelector('.up-form-error');
 
     btn?.addEventListener('click', () => {
       modal.style.display = 'flex';
+      clearFormError(errorEl);
       const firstInput = form?.querySelector('input');
       firstInput?.focus();
     });
 
     cancelBtn?.addEventListener('click', () => {
       modal.style.display = 'none';
+      clearFormError(errorEl);
       form?.reset();
     });
 
     modal?.addEventListener('click', (e) => {
       if (e.target === modal) {
         modal.style.display = 'none';
+        clearFormError(errorEl);
         form?.reset();
       }
     });
@@ -433,13 +449,11 @@ export default function UserPanel(container) {
     const errorEl = document.getElementById('upUsernameError');
     const submitBtn = document.querySelector('#upUsernameForm button[type="submit"]');
 
-    errorEl.classList.remove('show');
-    errorEl.textContent = '';
+    clearFormError(errorEl);
 
     const username = input.value.trim();
     if (username.length < 3) {
-      errorEl.textContent = 'Username must be at least 3 characters';
-      errorEl.classList.add('show');
+      showFormError(errorEl, 'Username must be at least 3 characters');
       return;
     }
 
@@ -463,8 +477,7 @@ export default function UserPanel(container) {
         submitBtn.disabled = false;
       }, 700);
     } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.classList.add('show');
+      showFormError(errorEl, err.message);
       submitBtn.textContent = originalText;
       submitBtn.disabled = false;
     }
@@ -477,15 +490,13 @@ export default function UserPanel(container) {
     const errorEl = document.getElementById('upEmailError');
     const submitBtn = document.querySelector('#upEmailForm button[type="submit"]');
 
-    errorEl.classList.remove('show');
-    errorEl.textContent = '';
+    clearFormError(errorEl);
 
     const email = input.value.trim();
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRe.test(email)) {
-      errorEl.textContent = 'Invalid email address';
-      errorEl.classList.add('show');
+      showFormError(errorEl, 'Invalid email address');
       return;
     }
 
@@ -509,8 +520,7 @@ export default function UserPanel(container) {
         submitBtn.disabled = false;
       }, 700);
     } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.classList.add('show');
+      showFormError(errorEl, err.message);
       submitBtn.textContent = originalText;
       submitBtn.disabled = false;
     }
@@ -524,20 +534,18 @@ export default function UserPanel(container) {
     const errorEl = document.getElementById('upPasswordError');
     const submitBtn = document.querySelector('#upPasswordForm button[type="submit"]');
 
-    errorEl.classList.remove('show');
-    errorEl.textContent = '';
+    clearFormError(errorEl);
 
     let valid = true;
     if (newPass.value.length < 6) {
-      errorEl.textContent = 'New password must be at least 6 characters';
+      showFormError(errorEl, 'New password must be at least 6 characters');
       valid = false;
     } else if (newPass.value !== confirm.value) {
-      errorEl.textContent = 'Passwords do not match';
+      showFormError(errorEl, 'Passwords do not match');
       valid = false;
     }
 
     if (!valid) {
-      errorEl.classList.add('show');
       return;
     }
 
@@ -562,8 +570,7 @@ export default function UserPanel(container) {
         submitBtn.disabled = false;
       }, 700);
     } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.classList.add('show');
+      showFormError(errorEl, err.message);
       submitBtn.textContent = originalText;
       submitBtn.disabled = false;
     }
