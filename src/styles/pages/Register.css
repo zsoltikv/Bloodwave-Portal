@@ -1,0 +1,136 @@
+@import '../base/auth-common.css';
+
+/* ============================================
+   REGISTER-SPECIFIC (password strength)
+   ============================================ */
+
+#pwStrengthLine {
+  height: 2px;
+  background-image: var(--pw-gradient,
+    linear-gradient(90deg, var(--crimson), var(--gold-light), var(--crimson)));
+  animation: bw-pw-shimmer 2.2s linear infinite paused;
+}
+#pwStrengthLine.bw-pw-active {
+  animation-play-state: running;
+}
+@keyframes bw-pw-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+#pwStrengthLine.bw-pw-pulse {
+  transform: scaleX(1) scaleY(2.5);
+}
+
+.bw-form {
+  padding-bottom: clamp(4px, 1.4vw, 8px);
+}
+
+.bw-footer-link {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.bw-footer-link p {
+  margin-bottom: 0;
+}
+
+/* ============================================
+   TOS & COOKIE POLICY CHECKBOX
+   ============================================ */
+
+.bw-checkbox-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+#rxName.bw-input::placeholder,
+#rxEmail.bw-input::placeholder,
+#rxName.bw-input::-webkit-input-placeholder,
+#rxEmail.bw-input::-webkit-input-placeholder,
+#rxName.bw-input::-moz-placeholder,
+#rxEmail.bw-input::-moz-placeholder {
+  color: rgba(255,255,255,0.04) !important;
+}
+
+.bw-field--tos {
+  margin-top: -2px;
+  margin-bottom: 6px;
+  animation: bw-fade-in 0.8s ease both 0.95s;
+}
+
+.bw-field--confirm {
+  margin-bottom: 6px;
+}
+
+.bw-field--confirm .bw-error {
+  margin-top: 4px;
+  min-height: 0;
+}
+
+.bw-field--confirm .bw-error:empty {
+  display: none;
+}
+
+.bw-checkbox-label {
+  font-size: clamp(9px, 2.2vw, 11px);
+  letter-spacing: 1.2px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.bw-forgot {
+  font-size: clamp(8px, 2vw, 10px);
+  letter-spacing: 2.5px;
+  color: rgba(212,175,55,0.5);
+  text-transform: uppercase;
+  text-decoration: none;
+  font-weight: 300;
+  transition: color 0.3s, letter-spacing 0.3s;
+  white-space: nowrap;
+}
+.bw-forgot:hover {
+  color: rgba(212,175,55,0.85);
+  letter-spacing: 3px;
+}
+
+.bw-checkbox-label .bw-forgot {
+  display: inline;
+  margin-left: 2px;
+  letter-spacing: 1.2px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-decoration: none;
+  transform-origin: left center;
+  transition: color 0.3s, letter-spacing 0.3s, transform 0.25s ease;
+}
+
+.bw-checkbox-label .bw-forgot:hover,
+.bw-checkbox-label .bw-forgot:focus-visible,
+.bw-checkbox-label .bw-forgot:active {
+  display: inline-block;
+  transform: scale(1.035);
+  text-decoration: none;
+}
+
+.bw-field--tos .bw-error {
+  margin-top: 4px;
+  min-height: 0;
+}
+
+.bw-field--tos .bw-error:empty {
+  display: none;
+}
+
+.bw-checkbox-label a {
+  transition: color 0.3s ease;
+}
+
+.bw-checkbox-label a:hover {
+  color: var(--bw-gold-light, #D4AF37);
+  text-decoration: underline;
+}
