@@ -2,6 +2,7 @@ import '../../css/pages/UserPanel.css';
 import { API_BASE, getUser, logout, authFetch } from '../auth.js';
 import { confirmLogout, confirmDeleteAccount, showDeleteAccountError } from '../logout-confirm.js';
 import { ensureGlobalStarfield } from '../global-starfield.js';
+import { usernameIsProfane } from '../utils/profanity.js';
 
 export default function UserPanel(container) {
   const cachedUser = getUser();
@@ -454,6 +455,11 @@ export default function UserPanel(container) {
     const username = input.value.trim();
     if (username.length < 3) {
       showFormError(errorEl, 'Username must be at least 3 characters');
+      return;
+    }
+
+    if (await usernameIsProfane(username)) {
+      showFormError(errorEl, 'This username is not allowed');
       return;
     }
 

@@ -1,6 +1,7 @@
 import '../../css/pages/Register.css';
 import { register } from '../auth.js';
 import { ensureGlobalStarfield } from '../global-starfield.js';
+import { usernameIsProfane } from '../utils/profanity.js';
 
 export default function Register(container) {
   container.innerHTML = `
@@ -172,6 +173,11 @@ export default function Register(container) {
     clearErrors();
 
     if (!validate()) return;
+
+    if (await usernameIsProfane(nameInput.value.trim())) {
+      nameError.textContent = 'This username is not allowed';
+      return;
+    }
 
     btn.disabled = true;
     btn.querySelector('.bw-btn-text').textContent = '✦  Creating…  ✦';
