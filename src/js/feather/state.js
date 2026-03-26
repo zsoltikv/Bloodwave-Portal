@@ -1,3 +1,5 @@
+import { getInternalFeatherConfig } from './config.js';
+
 const FEATHER_REACTIVE = Symbol('feather.reactive');
 const observerQueue = new Set();
 const reactiveUsageWarnings = new Set();
@@ -8,6 +10,16 @@ let isFlushing = false;
 let reactiveCreationPhase = null;
 
 function warnReactiveUsage(message) {
+  const config = getInternalFeatherConfig();
+
+  if (config.strictBindings) {
+    throw new Error(message);
+  }
+
+  if (!config.dev) {
+    return;
+  }
+
   if (reactiveUsageWarnings.has(message)) {
     return;
   }
@@ -21,7 +33,7 @@ function warnReactiveReadDuringRender() {
     return;
   }
 
-  warnReactiveUsage('Feather: reactive values should be passed as functions (() => value) to create reactive bindings.');
+  warnReactiveUsage('Feather: reactive values must be passed as functions (() => value). Reading them during render creates static output.');
 }
 
 function scheduleFlush() {

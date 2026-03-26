@@ -1,14 +1,16 @@
 import { beginReactiveCreationPhase, effect, endReactiveCreationPhase, isReactive, read, untrack } from './state.js';
+import { getInternalFeatherConfig } from './config.js';
 import { cx, token } from './theme.js';
 
 const FRAGMENT = Symbol('feather.fragment');
 const FEATHER_RUNTIME_STYLE_ID = 'feather-runtime-styles';
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
-const MAX_BINDING_DEPTH = 3;
+const MAX_BINDING_DEPTH = 1;
 const bindingWarnings = new Set();
-const NESTED_BINDING_WARNING = 'Feather: Nested binding structures are discouraged. Use flat bindings or functions instead.';
-const ARRAY_BINDING_WARNING = 'Feather: Arrays of bindings are discouraged. Use flat bindings or functions instead.';
-const MIXED_BINDING_WARNING = 'Feather: Mixed binding types are discouraged. Prefer one binding style per value.';
+const NESTED_BINDING_WARNING = 'Feather: nested binding structures are not supported. Use flat bindings or functions instead.';
+const ARRAY_BINDING_WARNING = 'Feather: arrays of bindings are discouraged. Use flat bindings or a function binding instead.';
+const MIXED_BINDING_WARNING = 'Feather: mixed binding types are not supported. Prefer one binding style per value.';
+const DIRECT_REACTIVE_CHILD_WARNING = 'Feather: reactive children must be passed as functions, for example Box(() => count.get()). Direct reactive children still work for compatibility but are deprecated.';
 const SVG_TAGS = new Set([
   'svg',
   'path',
@@ -140,6 +142,16 @@ function composeHandlers(...handlers) {
 }
 
 function warnBinding(message) {
+  const config = getInternalFeatherConfig();
+
+  if (config.strictBindings) {
+    throw new Error(message);
+  }
+
+  if (!config.dev) {
+    return;
+  }
+
   if (bindingWarnings.has(message)) {
     return;
   }
@@ -154,31 +166,78 @@ function createBindingInfo() {
     hasGetter: false,
     hasReactive: false,
     hasNested: false,
-    hasBindingArray: false,
+    hasArray: false,
   };
 }
 
-function inspectBinding(value, info, depth = 0) {
+function markBindingType(value, info) {
   if (typeof value === 'function' && value.length === 0) {
     info.hasBinding = true;
     info.hasGetter = true;
-    return;
+    return true;
   }
 
   if (isReactive(value)) {
     info.hasBinding = true;
     info.hasReactive = true;
+    return true;
+  }
+
+  return false;
+}
+
+function inspectBindingContainerEntries(entries, info) {
+  entries.forEach((entry) => {
+    if (markBindingType(entry, info)) {
+      return;
+    }
+
+    if (Array.isArray(entry)) {
+      info.hasArray = true;
+      info.hasNested = true;
+      entry.forEach((nestedEntry) => {
+        if (markBindingType(nestedEntry, info)) {
+          return;
+        }
+
+        if (Array.isArray(nestedEntry) || isPlainObject(nestedEntry)) {
+          info.hasNested = true;
+        }
+      });
+      return;
+    }
+
+    if (isPlainObject(entry)) {
+      info.hasNested = true;
+      Object.values(entry).forEach((nestedEntry) => {
+        if (markBindingType(nestedEntry, info)) {
+          return;
+        }
+
+        if (Array.isArray(nestedEntry)) {
+          info.hasArray = true;
+          info.hasNested = true;
+          return;
+        }
+
+        if (isPlainObject(nestedEntry)) {
+          info.hasNested = true;
+        }
+      });
+    }
+  });
+}
+
+function inspectBinding(value, info, depth = 0) {
+  if (markBindingType(value, info)) {
     return;
   }
 
   if (Array.isArray(value)) {
-    info.hasBindingArray = true;
-
-    if (depth > 0) {
-      info.hasNested = true;
-    }
-
+    info.hasArray = true;
     if (depth >= MAX_BINDING_DEPTH) {
+      info.hasNested = true;
+      inspectBindingContainerEntries(value, info);
       return;
     }
 
@@ -187,11 +246,9 @@ function inspectBinding(value, info, depth = 0) {
   }
 
   if (isPlainObject(value)) {
-    if (depth > 0) {
-      info.hasNested = true;
-    }
-
     if (depth >= MAX_BINDING_DEPTH) {
+      info.hasNested = true;
+      inspectBindingContainerEntries(Object.values(value), info);
       return;
     }
 
@@ -208,7 +265,7 @@ function getBindingInfo(value, { warn = true } = {}) {
       warnBinding(NESTED_BINDING_WARNING);
     }
 
-    if (info.hasBindingArray) {
+    if (info.hasArray) {
       warnBinding(ARRAY_BINDING_WARNING);
     }
 
@@ -220,13 +277,15 @@ function getBindingInfo(value, { warn = true } = {}) {
   return info;
 }
 
-// A binding is any value that resolves through Feather's binding pipeline.
-// Functions are the primary reactive form; shallow objects are supported for prop maps.
 function isBindingGetter(value) {
   return getBindingInfo(value, { warn: false }).hasGetter;
 }
 
 function isBinding(value) {
+  return getBindingInfo(value, { warn: false }).hasBinding;
+}
+
+function shouldBlockNestedBinding(value) {
   return getBindingInfo(value, { warn: false }).hasBinding;
 }
 
@@ -240,11 +299,10 @@ function unwrapBinding(value, depth = 0) {
   }
 
   if (Array.isArray(value)) {
-    if (depth > 0) {
-      warnBinding(NESTED_BINDING_WARNING);
-    }
-
     if (depth >= MAX_BINDING_DEPTH) {
+      if (shouldBlockNestedBinding(value)) {
+        warnBinding(NESTED_BINDING_WARNING);
+      }
       return value;
     }
 
@@ -252,11 +310,10 @@ function unwrapBinding(value, depth = 0) {
   }
 
   if (isPlainObject(value)) {
-    if (depth > 0) {
-      warnBinding(NESTED_BINDING_WARNING);
-    }
-
     if (depth >= MAX_BINDING_DEPTH) {
+      if (shouldBlockNestedBinding(value)) {
+        warnBinding(NESTED_BINDING_WARNING);
+      }
       return value;
     }
 
@@ -269,42 +326,36 @@ function unwrapBinding(value, depth = 0) {
 }
 
 function createBindingGetter(value, legacyMessage = null) {
-  if (typeof value === 'function' && value.length === 0) {
-    return () => unwrapBinding(value());
-  }
-
   const bindingInfo = getBindingInfo(value);
-
-  if (bindingInfo.hasGetter) {
-    return () => unwrapBinding(value);
+  if (!bindingInfo.hasBinding) {
+    return null;
   }
 
-  if (bindingInfo.hasBinding) {
-    if (legacyMessage) {
-      warnBinding(legacyMessage);
-    }
-
-    return () => unwrapBinding(value);
+  if (legacyMessage && bindingInfo.hasReactive && !bindingInfo.hasGetter && !bindingInfo.hasNested) {
+    warnBinding(legacyMessage);
   }
 
-  return null;
+  return () => unwrapBinding(value);
+}
+
+function resolveBindingValue(value, legacyMessage = null) {
+  const bindingGetter = createBindingGetter(value, legacyMessage);
+  return bindingGetter ? bindingGetter() : value;
 }
 
 function mapBinding(value, mapper, legacyMessage = null) {
   const bindingGetter = createBindingGetter(value, legacyMessage);
-  if (bindingGetter) {
-    return () => mapper(bindingGetter());
-  }
-
-  return mapper(unwrapBinding(value));
+  return bindingGetter
+    ? () => mapper(bindingGetter())
+    : mapper(resolveBindingValue(value));
 }
 
 function mapJoinedBinding(parts, mapper) {
   if (parts.some((entry) => isBinding(entry))) {
-    return () => mapper(parts.map((entry) => unwrapBinding(entry)));
+    return () => mapper(parts.map((entry) => resolveBindingValue(entry)));
   }
 
-  return mapper(parts.map((entry) => unwrapBinding(entry)));
+  return mapper(parts.map((entry) => resolveBindingValue(entry)));
 }
 
 function resolveModelBindings(props = {}) {
@@ -315,9 +366,10 @@ function resolveModelBindings(props = {}) {
     return props;
   }
 
-  const currentType = unwrapBinding(type);
+  const currentType = resolveBindingValue(type);
   const nextType = type === undefined ? currentType : type;
   const isCheckboxLike = currentType === 'checkbox' || currentType === 'radio';
+  const modelBinding = isReactive(model) ? () => model.get() : model;
   const invalidAttrs = field?.invalid
     ? { 'aria-invalid': () => field.invalid.get() }
     : null;
@@ -325,7 +377,7 @@ function resolveModelBindings(props = {}) {
   if (isCheckboxLike) {
     return mergeProps(rest, {
       type: nextType,
-      checked: field ? () => field.value.get() : (model || checked),
+      checked: field ? () => field.value.get() : (modelBinding || checked),
       onChange: composeHandlers((event) => {
         if (binding?.set) {
           binding.set(Boolean(event.target.checked));
@@ -341,7 +393,7 @@ function resolveModelBindings(props = {}) {
 
   return mergeProps(rest, {
     type: nextType,
-    value: field ? () => field.value.get() : (model || value),
+    value: field ? () => field.value.get() : (modelBinding || value),
     onInput: composeHandlers((event) => {
       if (binding?.set) {
         binding.set(event.target.value);
@@ -614,7 +666,7 @@ function resolveBoxModelStyles(property, args) {
     return { [property]: mapJoinedBinding(args, (values) => values.join(' ')) };
   }
 
-  return { [property]: args.map((value) => unwrapBinding(value)).join(' ') };
+  return { [property]: args.map((value) => resolveBindingValue(value)).join(' ') };
 }
 
 function resolveShadowValue(args) {
@@ -642,17 +694,17 @@ function resolveShadowValue(args) {
         );
       }
 
-      return `${unwrapBinding(inset) ? 'inset ' : ''}${unwrapBinding(x)} ${unwrapBinding(y)} ${unwrapBinding(blur)} ${unwrapBinding(spread)} ${unwrapBinding(color)}`.trim();
+      return `${resolveBindingValue(inset) ? 'inset ' : ''}${resolveBindingValue(x)} ${resolveBindingValue(y)} ${resolveBindingValue(blur)} ${resolveBindingValue(spread)} ${resolveBindingValue(color)}`.trim();
     }
 
-    return unwrapBinding(value);
+    return resolveBindingValue(value);
   }
 
   if (args.some(isBinding)) {
     return mapJoinedBinding(args, (values) => values.join(' '));
   }
 
-  return args.map((value) => unwrapBinding(value)).join(' ');
+  return args.map((value) => resolveBindingValue(value)).join(' ');
 }
 
 function addAttributes(node, nextAttributes) {
@@ -740,11 +792,11 @@ function withModifiers(node) {
 
     return node;
   });
-  addModifierMethod(node, 'when', (condition, applyWhenTrue) => (unwrapBinding(condition)
+  addModifierMethod(node, 'when', (condition, applyWhenTrue) => (resolveBindingValue(condition)
     ? (typeof applyWhenTrue === 'function' ? applyWhenTrue(node) : node)
     : node));
   addModifierMethod(node, 'if', (condition, truthyValue, falsyValue = null) => {
-    if (unwrapBinding(condition)) {
+    if (resolveBindingValue(condition)) {
       return typeof truthyValue === 'function' ? truthyValue(node) : truthyValue || node;
     }
 
@@ -752,7 +804,7 @@ function withModifiers(node) {
   });
   addModifierMethod(node, 'as', (value) => withModifiers({
     ...cloneNode(node),
-    nodeType: unwrapBinding(value) || node.nodeType,
+    nodeType: resolveBindingValue(value) || node.nodeType,
   }));
   addModifierMethod(node, 'aria', (key, value = true) => addAttributes(node, {
     [`aria-${String(key).replace(/^aria-/, '')}`]: value,
@@ -1100,7 +1152,8 @@ function createReactiveRegion(getter, context) {
 }
 
 function createReactiveChildNode(binding, context) {
-  return createReactiveRegion(() => binding.get(), context);
+  const bindingGetter = createBindingGetter(binding, DIRECT_REACTIVE_CHILD_WARNING);
+  return createReactiveRegion(() => (bindingGetter ? bindingGetter() : binding), context);
 }
 
 function applyStyles(element, styles) {
@@ -1376,7 +1429,7 @@ function createElementNode(node, context) {
         applyResolvedProp(
           element,
           key,
-          unwrapBinding(Object.prototype.hasOwnProperty.call(nextRuntimeProps, key) ? nextRuntimeProps[key] : undefined),
+          resolveBindingValue(Object.prototype.hasOwnProperty.call(nextRuntimeProps, key) ? nextRuntimeProps[key] : undefined),
           childContext,
         );
       });
@@ -1397,7 +1450,7 @@ function createElementNode(node, context) {
 function resolveRuntimeNode(node) {
   // Runtime state also flows through the binding pipeline so modifiers, props,
   // and control-flow helpers share the same mental model.
-  const runtimeState = unwrapBinding(node.meta?.state || {});
+  const runtimeState = resolveBindingValue(node.meta?.state || {});
   const preparedProps = typeof node.meta?.prepareProps === 'function'
     ? node.meta.prepareProps(node.nodeProps, node.children)
     : node.nodeProps;
@@ -1428,7 +1481,6 @@ export function createDomNode(value, context) {
   }
 
   if (isReactive(value)) {
-    warnBinding('Feather: pass reactive children as functions, for example Box(() => count.get()). Direct reactive children still work for compatibility but are deprecated.');
     return createReactiveChildNode(value, context);
   }
 

@@ -163,7 +163,7 @@ const Leaderboard = page({
         ctx.board.rows.set(hydratedRows);
         ctx.board.status.set('ready');
         ctx.timeout(() => {
-          const grid = container.querySelector('#lb-grid');
+          const grid = ctx.$('#lb-grid');
           if (grid) animateLbStats(grid);
         }, 0, 'lifetime');
       } catch (error) {

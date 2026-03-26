@@ -145,17 +145,12 @@ function mainOrnament() {
 }
 
 function selectMainMatch(ctx, matchId) {
-  const previousSelectedId = ctx.matches.selectedId.get();
   ctx.matches.selectedId.set(matchId);
-  if (previousSelectedId !== matchId) {
-    ctx.timeout(() => triggerMainMatchActivation(ctx.container, matchId), 0, 'lifetime');
-  }
 }
 
 function mainMatchList(ctx) {
   const status = ctx.matches.status.get();
   const matches = ctx.matches.rows.get();
-  const selectedMatchId = ctx.matches.selectedId.get();
 
   if (status === 'loading') {
     return Box('Loading played matches...').className('mn-match-empty');
@@ -170,7 +165,6 @@ function mainMatchList(ctx) {
   }
 
   return matches.map((match, index) => {
-    const isActive = match.id === selectedMatchId;
     const swipeDelayMs = Math.min(index * 55, 440);
     const swipeShiftPx = Math.min(20 + index * 3, 42);
 
@@ -181,10 +175,10 @@ function mainMatchList(ctx) {
       ).className('mn-match-meta'),
       Box(formatPlayedAt(match.playedAt)).className('mn-match-time'),
     )
-      .className(`mn-match-item ${isActive ? 'active' : ''}`.trim())
+      .className('mn-match-item')
       .attr('type', 'button')
       .attr('role', 'option')
-      .attr('aria-selected', String(isActive))
+      .attr('aria-selected', () => String(ctx.matches.selectedId.get() === match.id))
       .attr('data-match-id', match.id)
       .style({ '--mn-row-delay': `${swipeDelayMs}ms`, '--mn-row-shift': `${swipeShiftPx}px` })
       .onClick(() => selectMainMatch(ctx, match.id));
@@ -566,19 +560,6 @@ function runMainStatsAnimations(ctx) {
   ctx.timeout(() => {
     if (ctx.container) animateEmbeddedStats(ctx.container);
   }, 0, 'lifetime');
-}
-
-function triggerMainMatchActivation(container, selectedMatchId) {
-  if (!container || !selectedMatchId) return;
-  const activeItem = container.querySelector(`.mn-match-item[data-match-id="${selectedMatchId}"]`);
-  if (!activeItem) return;
-
-  activeItem.classList.remove('is-activating');
-  void activeItem.offsetWidth;
-  activeItem.classList.add('is-activating');
-  activeItem.addEventListener('animationend', () => {
-    activeItem.classList.remove('is-activating');
-  }, { once: true });
 }
 
 async function parseResponsePayload(response) {

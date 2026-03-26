@@ -113,3 +113,7 @@ export {
   setTheme,
   token,
 } from './theme.js';
+export {
+  configureFeather,
+  getFeatherConfig,
+} from './config.js';
