@@ -100,8 +100,20 @@ export async function refreshSession() {
     body:    JSON.stringify({ refreshToken, expiresAt }),
   });
 
+  // If the refresh endpoint is missing (404) or otherwise returns a client error,
+  // clear local session to avoid repeated automatic refresh attempts that spam the console.
+  if (res.status === 404) {
+    clearSession();
+    window.router?.navigate('/login');
+    throw new Error('Token refresh endpoint not found (404)');
+  }
+
   const data = await res.json();
-  if (!res.ok || !data.success) throw new Error(data.message || 'Token refresh failed');
+  if (!res.ok || !data.success) {
+    // For other failures, clear session and surface a readable error.
+    clearSession();
+    throw new Error(data.message || 'Token refresh failed');
+  }
 
   // Preserve the original remember-me choice:
   // bw_remember cookie is only set when rememberMe=true
