@@ -40,6 +40,18 @@
   margin-bottom: 0;
 }
 
+.bw-bs-status-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.bw-bs-root .mn-server-gauge-shell {
+  width: 100%;
+}
+
 .bw-bs-footer-link {
   margin-top: clamp(12px, 2vw, 16px);
   display: flex;
@@ -56,6 +68,51 @@
 @media (max-width: 640px) {
   .bw-bs-monitor {
     padding: 0 12px;
+  }
+
+  .bw-bs-root .mn-server-visuals {
+    grid-template-columns: 1fr;
+  }
+
+  .bw-bs-root .mn-server-gauge-shell {
+    justify-content: center;
+  }
+
+  .bw-bs-root .mn-server-gauge {
+    width: clamp(180px, 62vw, 220px);
+    height: clamp(180px, 62vw, 220px);
+    max-width: none;
+    aspect-ratio: auto;
+    flex: 0 0 auto;
+  }
+
+  .bw-bs-root .mn-server-head {
+    gap: 12px;
+  }
+
+  .bw-bs-root .mn-server-title-row {
+    justify-content: center;
+  }
+
+  .bw-bs-status-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .bw-bs-root .mn-server-badge,
+  .bw-bs-root .mn-server-refresh {
+    width: clamp(132px, 36vw, 168px);
+    min-width: clamp(132px, 36vw, 168px);
+    min-height: 40px;
+    flex: 0 0 clamp(132px, 36vw, 168px);
+    justify-content: center;
+    align-items: center;
+    padding: 10px 12px;
+    text-align: center;
   }
 
   .bw-bs-back-btn {

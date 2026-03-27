@@ -123,13 +123,15 @@ export default function BackendStatus(container) {
             <p class="mn-server-kicker">Backend Server</p>
             <div class="mn-server-title-row">
               <h2 class="mn-server-title">Live API Monitor</h2>
+            </div>
+            <div class="bw-bs-status-actions">
               <span class="mn-server-badge mn-server-badge--${backendStatusSnapshot.tone || 'warn'}">
                 <span class="mn-server-badge-dot" aria-hidden="true"></span>
                 ${escapeHtml(backendStatusSnapshot.label || 'Unknown')}
               </span>
+              <button type="button" class="mn-server-refresh" id="mn-server-refresh" ${backendStatusLoading ? 'disabled' : ''}>${refreshLabel}</button>
             </div>
           </div>
-          <button type="button" class="mn-server-refresh" id="mn-server-refresh" ${backendStatusLoading ? 'disabled' : ''}>${refreshLabel}</button>
         </div>
 
         <div class="mn-server-visuals">
