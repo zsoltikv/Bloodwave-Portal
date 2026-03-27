@@ -1,0 +1,65 @@
+@import '../base/auth-common.css';
+
+#app[data-route="/backend-status"] {
+  --bw-content-width: min(1100px, 94vw);
+  --bw-content-inset: 16px;
+}
+
+#app[data-route="/backend-status"] .bw-route-view {
+  min-height: 100dvh;
+}
+
+.bw-bs-root {
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 3vh, 28px) 16px;
+  overflow-y: auto;
+}
+
+.bw-bs-card {
+  width: min(1120px, 100%);
+  max-width: 1120px;
+}
+
+.bw-bs-card-inner {
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(120% 100% at 8% 0%, rgba(212, 175, 55, 0.08), transparent 52%),
+    radial-gradient(100% 120% at 92% 100%, rgba(139, 0, 0, 0.14), transparent 58%),
+    linear-gradient(165deg, rgba(20, 8, 8, 0.98), rgba(10, 4, 4, 0.98));
+}
+
+.bw-bs-header {
+  padding-bottom: clamp(18px, 3.5vw, 26px);
+}
+
+.bw-bs-monitor {
+  padding: 0 clamp(14px, 3.5vw, 30px);
+  margin-bottom: 0;
+}
+
+.bw-bs-footer-link {
+  margin-top: clamp(12px, 2vw, 16px);
+  display: flex;
+  justify-content: center;
+  padding: 0 clamp(14px, 3.5vw, 30px) clamp(12px, 2vw, 16px);
+}
+
+.bw-bs-back-btn {
+  min-width: 240px;
+  text-align: center;
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .bw-bs-monitor {
+    padding: 0 12px;
+  }
+
+  .bw-bs-back-btn {
+    width: 100%;
+    min-width: 0;
+  }
+}

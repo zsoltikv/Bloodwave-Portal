@@ -48,6 +48,13 @@ export default function Stats(container) {
                   </svg>
                   Installation
                 </a>
+                <a href="/backend-status" data-link class="st-dd-item" role="menuitem">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5 8.25 9l3 3 4.5-6 4.5 7.5" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 19.5h16.5" />
+                  </svg>
+                  API Status
+                </a>
                 <div class="st-dd-divider"></div>
                 <button class="st-dd-item logout" id="st-dd-logout" role="menuitem">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -85,6 +92,7 @@ export default function Stats(container) {
             <div class="st-mobile-divider"></div>
             <a href="/user-panel" data-link class="st-mobile-link">Profile</a>
             <a href="/android-download" data-link class="st-mobile-link">Installation</a>
+            <a href="/backend-status" data-link class="st-mobile-link">Backend Status</a>
             <button class="st-mobile-logout" id="st-mobile-logout">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />

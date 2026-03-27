@@ -10,6 +10,7 @@ import Achievements from '../pages/Achievements.js';
 import ToS from '../pages/ToS.js';
 import UserPanel from '../pages/UserPanel.js';
 import AndroidDownload from '../pages/AndroidDownload.js';
+import BackendStatus from '../pages/BackendStatus.js';
 import ensureCustomCursor from '../effects/custom-cursor.js';
 
 function disableZoomOnMobile() {
@@ -68,6 +69,10 @@ const routes = [
   {
     path: '/android-download',
     component: AndroidDownload
+  },
+  {
+    path: '/backend-status',
+    component: BackendStatus
   },
   {
     path: '/main',

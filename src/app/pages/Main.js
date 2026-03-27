@@ -97,6 +97,13 @@ export default function Main(container) {
                   </svg>
                   Installation
                 </a>
+                <a href="/backend-status" data-link class="lb-dd-item" role="menuitem">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5 8.25 9l3 3 4.5-6 4.5 7.5" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 19.5h16.5" />
+                  </svg>
+                  API Status
+                </a>
                 <div class="mn-dd-divider"></div>
                 <button class="mn-dd-item logout" id="mn-dd-logout" role="menuitem">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
