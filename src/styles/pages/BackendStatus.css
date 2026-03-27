@@ -40,13 +40,21 @@
   margin-bottom: 0;
 }
 
-.bw-bs-root .mn-server-head {
+.#placeholder {}
+
+#app[data-route="/backend-status"] .bw-bs-root .mn-server-head {
   justify-content: center;
+  align-items: center;
 }
 
-.bw-bs-root .mn-server-copy-block {
+.#placeholder2 {}
+
+#app[data-route="/backend-status"] .bw-bs-root .mn-server-copy-block {
   flex: 0 0 auto;
   width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .bw-bs-root .mn-server-visuals {
@@ -77,8 +85,11 @@
   text-align: center;
 }
 
-.bw-bs-status-actions {
-  margin-top: 10px;
+.#placeholder3 {}
+
+#app[data-route="/backend-status"] .bw-bs-status-actions {
+  margin-top: 8px;
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
