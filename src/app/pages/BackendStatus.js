@@ -110,11 +110,6 @@ export default function BackendStatus(container) {
     const latencyMeter = getLatencyMeter(backendStatusSnapshot.responseTimeMs);
     const toneClass = `mn-server-card--${backendStatusSnapshot.tone || 'warn'}`;
     const refreshLabel = backendStatusLoading ? 'Checking...' : 'Refresh';
-    const liveMessage = backendStatusError
-      ? backendStatusError
-      : backendStatusLoading
-        ? 'Refreshing live feed'
-        : 'Auto refresh 60s';
 
     monitorSection.innerHTML = `
       <section class="mn-server-card ${toneClass}" aria-busy="${String(backendStatusLoading)}">
@@ -154,7 +149,6 @@ export default function BackendStatus(container) {
 
         <div class="mn-server-legend">
           <span class="mn-server-legend-item">${escapeHtml(backendStatusSnapshot.httpSummary || 'No HTTP details available.')}</span>
-          <span class="mn-server-legend-item">${escapeHtml(liveMessage)}</span>
           <span class="mn-server-legend-item mn-server-legend-item--countdown" id="mn-server-countdown">${escapeHtml(formatRefreshCountdown(backendStatusNextRefreshAt))}</span>
         </div>
       </section>
