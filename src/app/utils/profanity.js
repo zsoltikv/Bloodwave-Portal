@@ -1,81 +1,81 @@
-// profanity utility module: provides shared helper functions for validation and ui checks.
-// keeps small reusable logic out of page-level modules.
+import huWordsRaw from "../../locales/hu.txt?raw";
+import enWordsRaw from "../../locales/en.txt?raw";
 
-// Simple client-side profanity checker that loads hu.txt and en.txt
+// the following flag prevents re-processing the lists multiple times
 let _loaded = false;
-// declares mutable state used in this scope
-let _banned = new Set();
 
-// declares a helper function for a focused task
-function escapeRegExp(s) {
-  // returns a value from the current function
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// this set holds the normalized banned tokens collected from locale files
+const _banned = new Set();
+
+// addWordsFromText: parse raw newline-separated text and add cleaned tokens
+// - input: raw text from a locale file (string)
+// - behavior: splits on newlines, trims, normalizes unicode, lowercases,
+//   and ignores blank lines or comment lines starting with '#' or '//'.
+function addWordsFromText(text) {
+  text.split(/\r?\n/).forEach((line) => {
+    const word = line.trim().toLowerCase().normalize("NFC");
+    if (!word || word.startsWith("#") || word.startsWith("//")) return;
+    _banned.add(word);
+  });
 }
 
+// loadLists: populate the _banned set from bundled locale files
+// - we use vite's ?raw imports so the files are included in the bundle
+// - mark _loaded to avoid repeated work
 async function loadLists() {
-  // checks a condition before executing this branch
   if (_loaded) return;
-  // executes this operation step as part of the flow
-  _loaded = true;
 
-  // starts guarded logic to catch runtime errors
   try {
-    // declares a constant used in this scope
-    const paths = ["/src/locales/hu.txt", "/src/locales/en.txt"];
-    // declares a constant used in this scope
-    const results = await Promise.all(
-      // executes this operation step as part of the flow
-      paths.map((p) => fetch(p).then((r) => (r.ok ? r.text() : ""))),
-    );
-    // defines an arrow function used by surrounding logic
-    results.forEach((txt) => {
-      // defines an arrow function used by surrounding logic
-      txt.split(/\r?\n/).forEach((line) => {
-        // declares a constant used in this scope
-        const w = line.trim().toLowerCase();
-        // checks a condition before executing this branch
-        if (!w) return;
-        // checks a condition before executing this branch
-        if (w.startsWith("#") || w.startsWith("//")) return;
-        // executes this operation step as part of the flow
-        _banned.add(w);
-      });
-    });
+    // add words from hungarian and english lists into the set
+    addWordsFromText(huWordsRaw);
+    addWordsFromText(enWordsRaw);
+    _loaded = true;
   } catch (err) {
-    // executes this operation step as part of the flow
+    // if something goes wrong, log and keep _loaded false so callers
+    // can try again or fail safely
     console.warn("Failed to load profanity lists", err);
+    _loaded = false;
   }
 }
 
+// usernameIsProfane: main exported check used by register and profile code
+// - input: username (string)
+// - returns: boolean (true when the username should be rejected)
+// logic:
+// 1) ensure lists are loaded
+// 2) normalize username with unicode nfc and lowercase
+// 3) split into tokens using a unicode-aware separator (letters/numbers kept)
+// 4) if any token exactly matches a banned token -> profane
+// 5) for longer banned words (>=4 chars) allow substring match to catch
+//    cases where the banned word appears inside a longer username
 export async function usernameIsProfane(username) {
-  // checks a condition before executing this branch
   if (!username) return false;
-  // waits for an asynchronous operation to complete
+
   await loadLists();
-  // declares a constant used in this scope
-  const s = String(username).toLowerCase().trim();
 
-  // check exact token matches (split by non-alnum)
-  const tokens = s.split(/[^a-z0-9]+/).filter(Boolean);
-  // iterates through a sequence of values
-  for (const t of tokens) {
-    // checks a condition before executing this branch
-    if (_banned.has(t)) return true;
+  // normalize and trim the incoming username for stable comparisons
+  const normalized = String(username).toLowerCase().normalize("NFC").trim();
+
+  // split on any character that is not a unicode letter or number
+  // this keeps letters from many scripts (not just ascii) as tokens
+  const tokens = normalized.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+
+  // check exact token matches first (fast path)
+  for (const token of tokens) {
+    if (_banned.has(token)) return true;
   }
 
-  // check substring matches for longer banned words (reduce false positives)
-  for (const w of _banned) {
-    // checks a condition before executing this branch
-    if (w.length >= 4 && s.includes(w)) return true;
+  // then check substring matches for longer banned words to reduce false
+  // positives for short tokens but still catch embedded offensive words
+  for (const word of _banned) {
+    if (word.length >= 4 && normalized.includes(word)) return true;
   }
 
-  // returns a value from the current function
   return false;
 }
 
+// getProfanityList: helper to expose the currently loaded banned list (array)
 export async function getProfanityList() {
-  // waits for an asynchronous operation to complete
   await loadLists();
-  // returns a value from the current function
   return Array.from(_banned);
 }
