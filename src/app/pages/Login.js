@@ -9,6 +9,8 @@ import { ensureGlobalStarfield } from "../effects/global-starfield.js";
 // imports dependencies used by this module
 import { attachCapsLockHint } from "../utils/caps-lock.js";
 
+const COOKIE_POLICY_ACCEPT_KEY = "bw_cookie_policy_accepted_v1";
+
 // exports the main function for this module
 export default function Login(container) {
   // executes this operation step as part of the flow
@@ -86,6 +88,25 @@ export default function Login(container) {
           </form>
         </div>
       </div>
+
+      <div class="bw-cookie-overlay" id="lxCookieOverlay" aria-hidden="true">
+        <div class="bw-cookie-modal" role="dialog" aria-modal="true" aria-labelledby="lxCookieTitle" aria-describedby="lxCookieText">
+          <div class="bw-cookie-ornament" aria-hidden="true">
+            <span class="bw-cookie-ornament-line"></span>
+            <span class="bw-cookie-ornament-diamond"></span>
+            <span class="bw-cookie-ornament-line"></span>
+          </div>
+
+          <h2 class="bw-cookie-title" id="lxCookieTitle">Cookie Policy</h2>
+          <p class="bw-cookie-text" id="lxCookieText">
+            To continue, you must accept our Cookie Policy. We use cookies to keep your session secure and improve your experience.
+          </p>
+
+          <div class="bw-cookie-actions">
+            <button type="button" class="bw-cookie-accept" id="lxCookieAccept">I Accept</button>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 
@@ -99,6 +120,74 @@ export default function Login(container) {
 
   // declares a constant used in this scope
   const errorEl = document.getElementById("lxError");
+  // declares a constant used in this scope
+  const cookieOverlay = document.getElementById("lxCookieOverlay");
+  // declares a constant used in this scope
+  const cookieAcceptBtn = document.getElementById("lxCookieAccept");
+  // declares a constant used in this scope
+  const cookieOpenTosBtn = document.getElementById("lxCookieOpenTos");
+
+  const hasAcceptedCookiePolicy = () => {
+    // starts guarded logic to catch runtime errors
+    try {
+      // returns a value from the current function
+      return window.localStorage.getItem(COOKIE_POLICY_ACCEPT_KEY) === "true";
+    } catch {
+      // returns a value from the current function
+      return false;
+    }
+  };
+
+  const setCookiePolicyAccepted = () => {
+    // starts guarded logic to catch runtime errors
+    try {
+      // executes this operation step as part of the flow
+      window.localStorage.setItem(COOKIE_POLICY_ACCEPT_KEY, "true");
+    } catch {
+      // no-op when storage is unavailable
+    }
+  };
+
+  const toggleCookieOverlay = (isVisible) => {
+    // checks a condition before executing this branch
+    if (!cookieOverlay) return;
+    // executes this operation step as part of the flow
+    cookieOverlay.classList.toggle("is-open", isVisible);
+    // executes this operation step as part of the flow
+    cookieOverlay.setAttribute("aria-hidden", String(!isVisible));
+    // checks a condition before executing this branch
+    if (isVisible) {
+      // executes this operation step as part of the flow
+      window.setTimeout(() => cookieAcceptBtn?.focus(), 0);
+    }
+  };
+
+  // checks a condition before executing this branch
+  if (!hasAcceptedCookiePolicy()) {
+    // executes this operation step as part of the flow
+    toggleCookieOverlay(true);
+  }
+
+  // attaches a dom event listener for user interaction
+  cookieAcceptBtn?.addEventListener("click", () => {
+    // executes this operation step as part of the flow
+    setCookiePolicyAccepted();
+    // executes this operation step as part of the flow
+    toggleCookieOverlay(false);
+  });
+
+  cookieOpenTosBtn?.addEventListener("click", () => {
+    // checks a condition before executing this branch
+    if (window.router?.navigate) {
+      // executes this operation step as part of the flow
+      window.router.navigate("/tos");
+      // returns a value from the current function
+      return;
+    }
+
+    // executes this operation step as part of the flow
+    window.location.href = "/tos";
+  });
 
   // attaches a dom event listener for user interaction
   form.addEventListener("submit", async (e) => {
@@ -106,6 +195,16 @@ export default function Login(container) {
     e.preventDefault();
     // executes this operation step as part of the flow
     errorEl.textContent = "";
+
+    // checks a condition before executing this branch
+    if (cookieOverlay?.classList.contains("is-open")) {
+      // executes this operation step as part of the flow
+      errorEl.textContent = "Please accept the Cookie Policy before logging in.";
+      // executes this operation step as part of the flow
+      cookieAcceptBtn?.focus();
+      // returns a value from the current function
+      return;
+    }
 
     // declares a constant used in this scope
     const username = document.getElementById("lxUsername").value.trim();

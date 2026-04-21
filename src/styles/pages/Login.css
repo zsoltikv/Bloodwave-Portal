@@ -133,15 +133,16 @@
   /* starts styling rules for this selector block */
   .bw-extras {
     /* sets the flex-direction property for this rule */
-    flex-direction: row;
+    flex-direction: column;
     /* sets the flex-wrap property for this rule */
     flex-wrap: nowrap;
     /* sets the align-items property for this rule */
-    align-items: center;
+    align-items: stretch;
     /* sets the justify-content property for this rule */
-    justify-content: space-between;
+    justify-content: flex-start;
     /* sets the width property for this rule */
     width: 100%;
+    gap: 8px;
   }
 
   /* starts styling rules for this selector block */
@@ -150,5 +151,285 @@
     white-space: nowrap;
     /* sets the min-width property for this rule */
     min-width: max-content;
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 780px) {
+  .bw-root {
+    align-items: flex-start;
+    padding: max(14px, env(safe-area-inset-top)) 12px calc(18px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+
+  .bw-glow-center {
+    width: min(560px, 165vw);
+    height: min(560px, 165vw);
+    top: 38%;
+  }
+
+  .bw-card {
+    margin: clamp(8px, 3vh, 24px) auto;
+    max-width: 560px;
+  }
+
+  .bw-card-inner {
+    border-radius: 14px;
+  }
+
+  .bw-header {
+    padding: 28px 18px 22px;
+  }
+
+  .bw-title {
+    font-size: clamp(30px, 10vw, 40px);
+    letter-spacing: clamp(3px, 1.4vw, 5px);
+  }
+
+  .bw-subtitle {
+    letter-spacing: clamp(2px, 1vw, 3px);
+    margin-top: 6px;
+  }
+
+  .bw-form {
+    padding: 22px 16px 20px;
+  }
+
+  .bw-field {
+    margin-bottom: 16px;
+  }
+
+  .bw-input {
+    padding: 14px 14px;
+    font-size: 16px;
+  }
+
+  .bw-input::placeholder {
+    font-size: 11px;
+    letter-spacing: 1.2px;
+  }
+
+  .bw-pw-toggle {
+    right: 10px;
+  }
+
+  .bw-pw-toggle svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .bw-extras {
+    gap: 12px;
+  }
+
+  .bw-btn {
+    padding: 14px 12px;
+    letter-spacing: 3px;
+  }
+
+  .bw-divider {
+    margin: 18px 0 16px;
+    gap: 10px;
+  }
+
+  .bw-footer-link p {
+    letter-spacing: 1.8px;
+    line-height: 1.5;
+  }
+}
+
+/* Cookie policy acceptance overlay shown before login is allowed. */
+.bw-cookie-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(8, 6, 6, 0.82);
+  backdrop-filter: blur(3px);
+  z-index: 90;
+}
+
+.bw-cookie-overlay.is-open {
+  display: flex;
+}
+
+.bw-cookie-modal {
+  width: min(560px, calc(100vw - 28px));
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background:
+    linear-gradient(160deg, rgba(20, 10, 10, 0.95), rgba(10, 8, 8, 0.98)),
+    radial-gradient(circle at 20% 0%, rgba(139, 0, 0, 0.18), transparent 55%);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  padding: clamp(20px, 4vw, 32px);
+  text-align: center;
+  animation: bw-fade-in 0.35s ease;
+}
+
+.bw-cookie-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.bw-cookie-ornament-line {
+  width: 34px;
+  height: 1px;
+  background: linear-gradient(to right, rgba(212, 175, 55, 0), rgba(212, 175, 55, 0.55), rgba(212, 175, 55, 0));
+}
+
+.bw-cookie-ornament-diamond {
+  width: 8px;
+  height: 8px;
+  transform: rotate(45deg);
+  border: 1px solid rgba(212, 175, 55, 0.62);
+  background: rgba(139, 0, 0, 0.3);
+}
+
+.bw-cookie-title {
+  margin: 0 0 12px;
+  font-size: clamp(20px, 4vw, 28px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255, 242, 215, 0.94);
+}
+
+.bw-cookie-text {
+  margin: 0 auto;
+  max-width: 48ch;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.65;
+  letter-spacing: 0.5px;
+  font-size: clamp(12px, 2.6vw, 14px);
+}
+
+.bw-cookie-actions {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.bw-cookie-open-tos {
+  border: none;
+  background: transparent;
+  color: rgba(212, 175, 55, 0.86);
+  text-transform: none;
+  letter-spacing: 0.4px;
+  font-size: 12px;
+  padding: 4px 8px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: rgba(212, 175, 55, 0.5);
+  text-underline-offset: 3px;
+  transition:
+    color 0.22s ease,
+    text-decoration-color 0.22s ease,
+    transform 0.22s ease;
+}
+
+.bw-cookie-open-tos:hover,
+.bw-cookie-open-tos:focus-visible {
+  outline: none;
+  transform: translateY(-1px);
+  color: rgba(245, 223, 168, 0.96);
+  text-decoration-color: rgba(245, 223, 168, 0.8);
+}
+
+.bw-cookie-accept {
+  min-width: min(260px, 100%);
+  border: 1px solid rgba(212, 175, 55, 0.42);
+  background: linear-gradient(150deg, rgba(139, 0, 0, 0.38), rgba(54, 10, 10, 0.9));
+  color: rgba(255, 239, 204, 0.95);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 11px;
+  padding: 11px 22px;
+  cursor: pointer;
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.bw-cookie-accept:hover,
+.bw-cookie-accept:focus-visible {
+  outline: none;
+  transform: translateY(-1px);
+  border-color: rgba(212, 175, 55, 0.78);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+@media (max-width: 420px) {
+  .bw-root {
+    padding: max(10px, env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  .bw-card-inner {
+    border-radius: 12px;
+  }
+
+  .bw-header {
+    padding: 22px 14px 16px;
+  }
+
+  .bw-title {
+    font-size: clamp(26px, 11vw, 32px);
+    letter-spacing: clamp(2px, 1.2vw, 4px);
+    margin-bottom: 6px;
+  }
+
+  .bw-subtitle {
+    letter-spacing: 1.8px;
+  }
+
+  .bw-form {
+    padding: 18px 12px 16px;
+  }
+
+  .bw-label {
+    letter-spacing: 1.7px;
+    margin-bottom: 7px;
+  }
+
+  .bw-input {
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .bw-remember-label,
+  .bw-forgot {
+    letter-spacing: 1.4px;
+    font-size: 9px;
+  }
+
+  .bw-btn {
+    letter-spacing: 2.5px;
+    font-size: 10px;
+  }
+
+  .bw-divider-text {
+    letter-spacing: 2px;
+  }
+
+  .bw-footer-link p {
+    font-size: 9px;
+    letter-spacing: 1.4px;
+  }
+
+  .bw-cookie-open-tos,
+  .bw-cookie-accept {
+    width: 100%;
+    text-align: center;
+  }
+
+  .bw-cookie-open-tos {
+    font-size: 11px;
   }
 }
